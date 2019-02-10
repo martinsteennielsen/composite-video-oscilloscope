@@ -1,2 +1,2 @@
 # composite-video-oscilloscope
-A simulation of an oscilloscope with composite video output
+n-channel oscilloscope with composite video output for display
