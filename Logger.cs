@@ -14,7 +14,7 @@ namespace CompositeVideoOscilloscope {
 
         public async Task Run(CancellationToken canceller) {
             while (!canceller.IsCancellationRequested) {
-                Console.WriteLine($"Connected:{ Output.Connected}");
+                Console.WriteLine($"Connected:{ true }");
                 await Task.Delay(100);
             }
         }

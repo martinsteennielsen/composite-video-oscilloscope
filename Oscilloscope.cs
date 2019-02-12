@@ -4,16 +4,17 @@ using System.Threading.Tasks;
 namespace CompositeVideoOscilloscope {
     public class Oscilloscope {
         Output Output;
+        Timing Timing;
 
-        public Oscilloscope(Output output) {
+        public Oscilloscope(Timing timing, Output output) {
             Output = output;
+            Timing = timing;
         }
 
         public async Task Run(CancellationToken canceller) {
-            var timing = new PalTiming();
-            var timeKeeper = new TimeKeeper(minTime: 200 * timing.DotTime, maxTime: timing.FrameTime);
+            var timeKeeper = new TimeKeeper(minTime: 200 * Timing.DotTime, maxTime: Timing.FrameTime);
 
-            var signal = new CompositeSignal(timing);
+            var signal = new CompositeSignal(Timing);
 
             double simulatedTime = 0;
             while (!canceller.IsCancellationRequested) {
@@ -21,7 +22,7 @@ namespace CompositeVideoOscilloscope {
                 var endTime = simulatedTime + elapsedTime;
                 while (simulatedTime < endTime) {
                     Output.Add(signal.Get(simulatedTime));
-                    simulatedTime += timing.DotTime;
+                    simulatedTime += Timing.DotTime;
                 }
             }
         }

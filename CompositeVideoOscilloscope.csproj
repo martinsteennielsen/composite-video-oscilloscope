@@ -6,5 +6,7 @@
     <RootNamespace>CompositeVideoOscilloscope</RootNamespace>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="NetMq" Version="*" />
+  </ItemGroup>
 </Project>

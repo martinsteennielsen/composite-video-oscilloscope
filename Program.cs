@@ -6,9 +6,10 @@ namespace CompositeVideoOscilloscope {
     class Program {
 
         static void Main(string[] args) {
-            var output = new Output();
+            var timing = new PalTiming();
+            var output = new Output(timing);
             var logger = new Logger(output);
-            var oscilloscope = new Oscilloscope(output);
+            var oscilloscope = new Oscilloscope(timing, output);
 
             var canceller = new CancellationTokenSource();
 
