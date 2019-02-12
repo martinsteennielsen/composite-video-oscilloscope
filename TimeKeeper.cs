@@ -3,12 +3,12 @@ using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
 
-    public class Timer {
+    public class TimeKeeper {
         readonly Stopwatch StopWatch;
         readonly double MinTime, MaxTime;
         double SimulatedTime;
 
-        public Timer(double minTime, double maxTime) {
+        public TimeKeeper(double minTime, double maxTime) {
             MinTime = minTime;
             MaxTime = maxTime;
             StopWatch = new Stopwatch();

@@ -1,32 +1,22 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
     class Program {
 
-        static async Task Main(string[] args) {
+        static void Main(string[] args) {
             var output = new Output();
-            var canceller = new CancellationTokenSource().Token;
-            await Task.WhenAny(
-                Run(canceller, output), 
-                output.Run(canceller)
-                );
-        }
+            var logger = new Logger(output);
+            var oscilloscope = new Oscilloscope(output);
 
-        static async Task Run(CancellationToken canceller, Output output) {
-            var timing = new PalTiming();
-            var signal = new CompositeSignal(timing);
-            var timer = new Timer(minTime: 200 * timing.DotTime, maxTime: timing.FrameTime);
+            var canceller = new CancellationTokenSource();
 
-            double simulatedTime = 0;
-            while (!canceller.IsCancellationRequested) {
-                var elapsedTime = await timer.GetElapsedTimeAsync();
-                var endTime = simulatedTime + elapsedTime;
-                while (simulatedTime < endTime) {
-                    output.Add(signal.Get(simulatedTime));
-                    simulatedTime += timing.DotTime;
-                }
-            }
+            Task.Run(() => output.Run(canceller.Token));
+            Task.Run(() => logger.Run(canceller.Token));
+            Task.Run(() => oscilloscope.Run(canceller.Token));
+            Console.ReadLine();
+            canceller.Cancel();
         }
     }
 }

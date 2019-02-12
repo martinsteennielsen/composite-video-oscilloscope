@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO.Pipes;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +9,7 @@ namespace CompositeVideoOscilloscope {
         readonly int PacketSize = 256;
         readonly BlockingCollection<byte> Queue = new BlockingCollection<byte>();
 
-        bool Connected = false;
+        public bool Connected = false;
 
         public void Add(double value) {
             if (Connected) {
@@ -27,22 +23,24 @@ namespace CompositeVideoOscilloscope {
             while (!canceller.IsCancellationRequested) {
                 Connected = false;
 
-                using (var client = await listener.AcceptTcpClientAsync()) {
-                    while (Queue.TryTake(out byte _)) { };
-                    Connected = true;
+                try {
+                    using (var client = await listener.AcceptTcpClientAsync()) {
+                        while (Queue.TryTake(out byte _));
+                        Connected = true;
 
-                    using (var stream = client.GetStream()) {
-                        while (client.Connected && !canceller.IsCancellationRequested) {
-                            var buffer = new byte[PacketSize];
-                            for (int i = 0; i < PacketSize; i++) {
-                                while (!Queue.TryTake(out buffer[i])) {
-                                    await Task.Delay(1);
+                        using (var stream = client.GetStream()) {
+                            while (!canceller.IsCancellationRequested) {
+                                var buffer = new byte[PacketSize];
+                                for (int i = 0; i < PacketSize; i++) {
+                                    while (!Queue.TryTake(out buffer[i])) {
+                                        await Task.Delay(1);
+                                    }
                                 }
+                                await stream.WriteAsync(buffer, 0, PacketSize);
                             }
-                            await stream.WriteAsync(buffer, 0, PacketSize);
                         }
                     }
-                }
+                } catch { }
 
             }
         }
