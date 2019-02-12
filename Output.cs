@@ -10,10 +10,10 @@ namespace CompositeVideoOscilloscope {
     public class Output {
         readonly Timing Timing;
         readonly int PacketSize;
-        readonly BlockingCollection<byte> Queue = new BlockingCollection<byte>();
+        readonly ConcurrentQueue<byte> Queue = new ConcurrentQueue<byte>();
 
         public void Add(double value) {
-            Queue.Add((byte)(255 * value));
+            Queue.Enqueue((byte)(255 * value));
         }
 
         public Output(Timing timing) {
@@ -31,7 +31,7 @@ namespace CompositeVideoOscilloscope {
                         await Task.Delay(100);
                     }
                     for (int i = 0; i < PacketSize; i++) {
-                        buffer[i] = Queue.Take();
+                        Queue.TryDequeue(out buffer[i]);
                     }
                     pub.SendFrame(buffer);
                 }
