@@ -18,7 +18,7 @@ namespace CompositeVideoOscilloscope {
 
         public Output(Timing timing) {
             Timing = timing;
-            PacketSize = 10*(int)(timing.LineTime / timing.DotTime);
+            PacketSize = 200;
         }
 
         public async Task Run(CancellationToken canceller) {
@@ -27,10 +27,11 @@ namespace CompositeVideoOscilloscope {
             using (var pub = new PublisherSocket()) {
                 pub.Bind("tcp://127.0.0.1:10000");
                 while (!canceller.IsCancellationRequested) {
+                    while (Queue.Count < PacketSize) {
+                        await Task.Delay(100);
+                    }
                     for (int i = 0; i < PacketSize; i++) {
-                        while (!Queue.TryTake(out buffer[i])) {
-                            await Task.Delay((int)(10*1000*Timing.LineTime));
-                        }
+                        buffer[i] = Queue.Take();
                     }
                     pub.SendFrame(buffer);
                 }

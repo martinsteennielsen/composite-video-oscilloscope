@@ -7,6 +7,8 @@ namespace CompositeVideoOscilloscope {
 
         static void Main(string[] args) {
             var timing = new PalTiming();
+            //var timing = new PalTiming(dotSize: 1, framesPrSec: 20);
+
             var output = new Output(timing);
             var logger = new Logger(output);
             var oscilloscope = new Oscilloscope(timing, output);

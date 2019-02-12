@@ -12,7 +12,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task Run(CancellationToken canceller) {
-            var timeKeeper = new TimeKeeper(minTime: 200 * Timing.DotTime, maxTime: Timing.FrameTime);
+            var timeKeeper = new TimeKeeper(minTime: 0.25*Timing.FrameTime, maxTime: Timing.FrameTime);
 
             var signal = new CompositeSignal(Timing);
 

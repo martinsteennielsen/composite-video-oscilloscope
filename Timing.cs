@@ -20,5 +20,9 @@ namespace CompositeVideoOscilloscope {
     public class PalTiming : Timing {
         public PalTiming() : base(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6) {
         }
+        public PalTiming(double dotSize, double framesPrSec)
+            : base(hFreq: (312.5 / dotSize) * framesPrSec, vFreq: framesPrSec, bandwidthFreq: (320 / dotSize) * (312.5 / dotSize) * framesPrSec) {
+        }
+
     }
 }

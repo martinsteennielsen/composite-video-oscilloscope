@@ -29,7 +29,7 @@ namespace CompositeVideoOscilloscope {
             var elapsedTime = (tmpTime - SimulatedTime);
             SimulatedTime = tmpTime;
 
-            if (elapsedTime > 2.0 * MaxTime) {
+            if (elapsedTime > MaxTime) {
                 var skipTime = (elapsedTime - MaxTime);
                 SimulatedTime += skipTime;
                 elapsedTime = MaxTime;
