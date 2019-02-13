@@ -6,36 +6,40 @@ namespace CompositeVideoOscilloscope {
     public class TimeKeeper {
         readonly Stopwatch StopWatch;
         readonly double MinTime, MaxTime;
-        double SimulatedTime;
 
         public TimeKeeper(double minTime, double maxTime) {
             MinTime = minTime;
             MaxTime = maxTime;
             StopWatch = new Stopwatch();
             StopWatch.Start();
-            SimulatedTime = 0;
         }
 
-        public async Task<double> GetElapsedTimeAsync() {
+        async Task Sleep() {
+            if (MinTime > 0.001) {
+                await Task.Delay((int)(MinTime * 1000));
+            } else {
+                await Task.Yield();
+            }
+        }
+
+        double SimulatedTime = 0;
+        public async Task<(double, double)> GetElapsedTimeAsync() {
+
             while (StopWatch.Elapsed.TotalSeconds - SimulatedTime < MinTime) {
-                if (MinTime > 0.001) {
-                    await Task.Delay((int)(MinTime * 1000));
-                } else {
-                    await Task.Yield();
-                }
+                await Sleep();
             }
 
-            var tmpTime = StopWatch.Elapsed.TotalSeconds;
-            var elapsedTime = (tmpTime - SimulatedTime);
-            SimulatedTime = tmpTime;
+            var tmp = StopWatch.Elapsed.TotalSeconds;
+            var elapsedTime = (tmp - SimulatedTime);
+            SimulatedTime = tmp;
 
             if (elapsedTime > MaxTime) {
                 var skipTime = (elapsedTime - MaxTime);
                 SimulatedTime += skipTime;
-                elapsedTime = MaxTime;
+                return (MaxTime, skipTime);
+            } else {
+                return (elapsedTime, 0);
             }
-
-            return elapsedTime;
         }
     }
 }

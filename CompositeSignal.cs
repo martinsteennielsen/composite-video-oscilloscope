@@ -14,7 +14,9 @@ namespace CompositeVideoOscilloscope {
 
         private double SimulatedTime = 0;
 
-        public List<double> Generate(double endTime) {
+        public List<double> Generate(double endTime, double skipTime) {
+            SimulatedTime += skipTime;
+            endTime+=skipTime;
             var result = new List<double>();
             int startX = (int)(SimulatedTime % Timing.LineTime / Timing.DotTime);
             int startY = (int)(SimulatedTime % Timing.FrameTime / Timing.LineTime);

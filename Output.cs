@@ -1,21 +1,17 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace CompositeVideoOscilloscope {
+namespace CompositeVideoOscilloscope
+{
     public class Output : IDisposable {
         readonly PublisherSocket Publisher;
 
-        public Output(TimingConstants timing) {
+        public Output(string address) {
             Publisher = new PublisherSocket();
-            Publisher.Bind("tcp://*:10001");
+            Publisher.Bind(address);
         }
 
         public void Set(List<double> values) {
@@ -24,6 +20,7 @@ namespace CompositeVideoOscilloscope {
 
         public void Dispose() {
             Publisher.Dispose();
+            NetMQ.NetMQConfig.Cleanup(block: false);
         }
     }
 }

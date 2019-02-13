@@ -18,8 +18,8 @@ namespace CompositeVideoOscilloscope {
             var timeKeeper = new TimeKeeper(minTime: 0.25*Timing.FrameTime, maxTime: Timing.FrameTime);
             var signal = new CompositeSignal(Timing);
             while (!canceller.IsCancellationRequested) {
-                double elapsedTime = await timeKeeper.GetElapsedTimeAsync();
-                var signalValues = signal.Generate(simulatedTime + elapsedTime);
+                var (elapsedTime, skipTime) = await timeKeeper.GetElapsedTimeAsync();
+                var signalValues = signal.Generate(simulatedTime + elapsedTime, skipTime);
                 simulatedTime += elapsedTime;
                 Output.Set(signalValues);
             }
