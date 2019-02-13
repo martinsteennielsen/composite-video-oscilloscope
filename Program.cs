@@ -9,17 +9,17 @@ namespace CompositeVideoOscilloscope {
             var timing = new PalTiming();
             //var timing = new PalTiming(dotSize: 1, framesPrSec: 20);
 
-            var output = new Output(timing);
-            var logger = new Logger(output);
-            var oscilloscope = new Oscilloscope(timing, output);
+            using (var output = new Output(timing)) {
+                var logger = new Logger(output);
+                var oscilloscope = new Oscilloscope(timing, output);
+                var canceller = new CancellationTokenSource();
 
-            var canceller = new CancellationTokenSource();
-
-            Task.Run(() => output.Run(canceller.Token));
-            Task.Run(() => logger.Run(canceller.Token));
-            Task.Run(() => oscilloscope.Run(canceller.Token));
-            Console.ReadLine();
-            canceller.Cancel();
+                Task.Run(() => logger.Run(canceller.Token));
+                Task.Run(() => oscilloscope.Run(canceller.Token));
+                Console.ReadLine();
+                canceller.Cancel();
+            }
+            NetMQ.NetMQConfig.Cleanup(block: false);
         }
     }
 }

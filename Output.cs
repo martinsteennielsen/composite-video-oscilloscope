@@ -1,41 +1,29 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
-    public class Output {
-        readonly Timing Timing;
-        readonly int PacketSize;
-        readonly ConcurrentQueue<byte> Queue = new ConcurrentQueue<byte>();
+    public class Output : IDisposable {
+        readonly PublisherSocket Publisher;
 
-        public void Add(double value) {
-            Queue.Enqueue((byte)(255 * value));
+        public Output(TimingConstants timing) {
+            Publisher = new PublisherSocket();
+            Publisher.Bind("tcp://*:10001");
         }
 
-        public Output(Timing timing) {
-            Timing = timing;
-            PacketSize = 200;
+        public void Set(List<double> values) {
+            Publisher.SendFrame(values.Select(x=>(byte)(x*255.0)).ToArray());
         }
 
-        public async Task Run(CancellationToken canceller) {
-            var buffer = new byte[PacketSize];
-
-            using (var pub = new PublisherSocket()) {
-                pub.Bind("tcp://127.0.0.1:10000");
-                while (!canceller.IsCancellationRequested) {
-                    while (Queue.Count < PacketSize) {
-                        await Task.Delay(100);
-                    }
-                    for (int i = 0; i < PacketSize; i++) {
-                        Queue.TryDequeue(out buffer[i]);
-                    }
-                    pub.SendFrame(buffer);
-                }
-            }
+        public void Dispose() {
+            Publisher.Dispose();
         }
     }
 }
