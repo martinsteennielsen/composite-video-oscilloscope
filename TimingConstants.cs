@@ -4,7 +4,10 @@ namespace CompositeVideoOscilloscope {
         public double LineBlankingTime;
         public double LineSyncTime;
         public double FrontPorchTime;
-        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6 };
+        public double EquPulseTime;
+        public double VerticalSerrationTime;
+
+        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6 };
     }
 
 
