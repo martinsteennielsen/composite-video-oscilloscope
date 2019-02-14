@@ -1,6 +1,4 @@
-﻿using NetMQ.Sockets;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
@@ -20,7 +18,7 @@ namespace CompositeVideoOscilloscope {
             while (!canceller.IsCancellationRequested) {
                 var (elapsedTime, skipTime) = await timeKeeper.GetElapsedTimeAsync();
                 var signalValues = signal.Generate(simulatedTime + elapsedTime, skipTime);
-                simulatedTime += elapsedTime;
+                simulatedTime += (skipTime + elapsedTime);
                 Output.Set(signalValues);
             }
         }
