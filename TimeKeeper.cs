@@ -23,20 +23,18 @@ namespace CompositeVideoOscilloscope {
         }
 
         double SimulatedTime = 0;
-        public async Task<(double, double)> GetElapsedTimeAsync() {
+        public async Task<(double elapsedTime, double skippedTime)> GetElapsedTimeAsync() {
 
             while (StopWatch.Elapsed.TotalSeconds - SimulatedTime < MinTime) {
                 await Sleep();
             }
 
-            var tmp = StopWatch.Elapsed.TotalSeconds;
-            var elapsedTime = (tmp - SimulatedTime);
-            SimulatedTime = tmp;
+            var currentTime = StopWatch.Elapsed.TotalSeconds;
+            var elapsedTime = (currentTime - SimulatedTime);
+            SimulatedTime = currentTime;
 
             if (elapsedTime > MaxTime) {
-                var skipTime = (elapsedTime - MaxTime);
-                SimulatedTime += skipTime;
-                return (MaxTime, skipTime);
+                return (elapsedTime: MaxTime, skippedTime: (elapsedTime - MaxTime));
             } else {
                 return (elapsedTime, 0);
             }

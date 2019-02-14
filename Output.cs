@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CompositeVideoOscilloscope
-{
+namespace CompositeVideoOscilloscope {
     public class Output : IDisposable {
         readonly PublisherSocket Publisher;
 
@@ -20,7 +19,7 @@ namespace CompositeVideoOscilloscope
 
         public void Dispose() {
             Publisher.Dispose();
-            NetMQ.NetMQConfig.Cleanup(block: false);
+            NetMQConfig.Cleanup(block: false);
         }
     }
 }
