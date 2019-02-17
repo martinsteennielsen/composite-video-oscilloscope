@@ -57,7 +57,7 @@ namespace CompositeVideoOscilloscope {
             Frame = InterlacedPALFrame(timing);
         }
 
-        public List<double> Generate(double endTime, double skipTime) {
+        public List<double> Generate(double endTime) {
             if (endTime > LastFrameTime + (2d * Timing.FrameTime)) {
                 var (frame, frameDuration) = GenerateFrame();
                 LastFrameTime += frameDuration;

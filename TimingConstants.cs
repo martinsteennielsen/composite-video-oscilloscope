@@ -24,7 +24,7 @@ namespace CompositeVideoOscilloscope {
             BandwidthFreq = bandwidthFreq;
             VFreq = vFreq;
             HFreq = hFreq;
-            DotTime = 1.0 / (bandwidthFreq);
+            DotTime = 1d / (bandwidthFreq);
             FrameTime = 1.0 / vFreq;
             LineTime = 1.0 / (hFreq);
             SyncTimes = syncTimes;
@@ -33,9 +33,6 @@ namespace CompositeVideoOscilloscope {
 
     public class PalTiming : TimingConstants {
         public PalTiming() : base(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal) {
-        }
-        public PalTiming(double dotSize, double framesPrSec)
-            : base(hFreq: (312.5 / dotSize) * framesPrSec, vFreq: framesPrSec, bandwidthFreq: (320 / dotSize) * (312.5 / dotSize) * framesPrSec, syncTimes: SyncConstants.Pal) {
         }
     }
 }

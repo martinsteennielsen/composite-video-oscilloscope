@@ -1,25 +1,23 @@
-﻿using System.Threading;
+﻿using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
     public class Oscilloscope {
         readonly Output Output;
         readonly TimingConstants Timing;
-
         public Oscilloscope(TimingConstants timing, Output output) {
             Output = output;
             Timing = timing;
         }
 
         public async Task Run(CancellationToken canceller) {
-            double simulatedTime = 0;
-            var timeKeeper = new TimeKeeper(minTime: 0.25*Timing.FrameTime, maxTime: Timing.FrameTime);
             var signal = new CompositeSignal(Timing);
+            var sw = new Stopwatch();
+            sw.Start();
             while (!canceller.IsCancellationRequested) {
-                var (elapsedTime, skipTime) = await timeKeeper.GetElapsedTimeAsync();
-                var signalValues = signal.Generate(simulatedTime + elapsedTime, skipTime);
-                simulatedTime += (skipTime + elapsedTime);
-                Output.Set(signalValues);
+                await Task.Delay(((int)(2d * 1000 * Timing.FrameTime)));
+                Output.Set(signal.Generate(sw.Elapsed.TotalSeconds));
             }
         }
     }
