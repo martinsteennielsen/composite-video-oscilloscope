@@ -22,32 +22,24 @@ namespace CompositeVideoOscilloscope {
             var syns = new[] {
                 new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime },
                 new Signal { Value = dark , Duration = timing.SyncTimes.EquPulseTime } };
-            var blank = new[] {
-                new Signal { Value = dark , Duration = timing.SyncTimes.FrontPorchTime },
-                new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.LineTime - timing.SyncTimes.LineBlankingTime } };
             var line = new[] {
-                new Signal { Value = dark , Duration = timing.SyncTimes.FrontPorchTime },
                 new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
                 new Signal { Value = dark , Duration = timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime },
-                new Signal { Value = sign , Duration = timing.LineTime - timing.SyncTimes.LineBlankingTime } };
-            var firstHalf = new[] {
-                new Signal  { Value = sign , Duration = 0.5 * timing.LineTime} };
-
-            var secondHalf = new[] {
+                new Signal { Value = sign , Duration = timing.LineTime - timing.SyncTimes.LineBlankingTime },
                 new Signal { Value = dark , Duration = timing.SyncTimes.FrontPorchTime },
+                };
+            var blank = new[] {
                 new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime },
-                new Signal { Value = sign , Duration = 0.5 * timing.LineTime - timing.SyncTimes.LineBlankingTime } };
+                new Signal { Value = dark , Duration = timing.LineTime - timing.SyncTimes.LineSyncTime },
+                };
 
             return new[] {
-                new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 1,   Signals = firstHalf },
+                new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
+                new SignalBlocks { Count = 12 , Signals = blank },
                 new SignalBlocks { Count = 293, Signals = line },
-                new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 4  , Signals = syns }, new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 292, Signals = line },
-                new SignalBlocks { Count = 1,   Signals = secondHalf },
+                new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 4  , Signals = syns },
+                new SignalBlocks { Count = 12 , Signals = blank },
+                new SignalBlocks { Count = 293, Signals = line },
                 new SignalBlocks { Count = 6  , Signals = syns },
             };
         }
@@ -90,8 +82,8 @@ namespace CompositeVideoOscilloscope {
             double w = Timing.LineTime / Timing.DotTime;
             int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
             int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
-            double step(double v) => (int)(10d * (double)v / w) / 10.0;
-            return step(y) * step(x) * 0.7 + 0.3;
+            double step(double v) => Math.Ceiling(10d * (double)v / w) / 10d;
+            return step(y) * step(x) * 0.7 + 0.4;
         }
 
     }
