@@ -14,7 +14,7 @@ namespace CompositeVideoOscilloscope {
         struct SignalBlocks { public int Count; public Signal[] Signals; };
 
         static SignalBlocks[] InterlacedPALFrame(TimingConstants timing) {
-            double dark = 0.3, sign = 1d, sync = 0d;
+            double dark = timing.SyncTimes.BlackLevel, sign = 1d, sync = 0d;
 
             var synl = new[] {
                 new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime },
@@ -64,12 +64,10 @@ namespace CompositeVideoOscilloscope {
             double dt = 1d / Timing.BandwidthFreq;
             var frameValues = new List<double>();
             foreach (var block in Frame) {
-                double blockDuration = 0;
                 for (int i = 0; i < block.Count; i++) {
                     foreach (var signal in block.Signals) {
                         for (; time < signalStart + signal.Duration; time += dt) {
                             frameValues.Add(signal.Value == 1d ? PixelValue(time) : signal.Value);
-                            blockDuration += (1e6 * dt);
                         }
                         signalStart += signal.Duration;
                     }
@@ -78,13 +76,15 @@ namespace CompositeVideoOscilloscope {
             return (frameValues, time);
         }
 
-        double PixelValue(double simulatedTime) {
-            double w = Timing.LineTime / Timing.DotTime;
-            int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
-            int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
-            double step(double v) => Math.Ceiling(10d * (double)v / w) / 10d;
-            return step(y) * step(x) * 0.7 + 0.4;
-        }
+        Random rnd = new Random();
+        double PixelValue(double simulatedTime) => 0.3 + 0.6 * rnd.NextDouble();
+        // double PixelValue(double simulatedTime) {
+        //     double w = Timing.LineTime / Timing.DotTime;
+        //     int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
+        //     int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
+        //     double step(double v) => Math.Ceiling(10d * (double)v / w) / 10d;
+        //     return step(y) * step(x) * 0.7 + 0.4;
+        // }
 
     }
 }

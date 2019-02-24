@@ -10,11 +10,13 @@ namespace CompositeVideoOscilloscope {
 
         public Output(string address) {
             Publisher = new PublisherSocket();
+            Publisher.Options.SendHighWatermark = 2;
+            Publisher.Options.SendHighWatermark = 5;
             Publisher.Bind(address);
         }
 
         public void Set(List<double> values) {
-            Publisher.SendFrame(values.Select(x=>(byte)(x*255.0)).ToArray());
+            Publisher.SendFrame(values.Select(x => (byte)(x * 255.0)).ToArray());
         }
 
         public void Dispose() {
