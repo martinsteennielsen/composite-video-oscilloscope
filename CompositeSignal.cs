@@ -76,15 +76,13 @@ namespace CompositeVideoOscilloscope {
             return (frameValues, time);
         }
 
-        Random rnd = new Random();
-        double PixelValue(double simulatedTime) => 0.3 + 0.6 * rnd.NextDouble();
-        // double PixelValue(double simulatedTime) {
-        //     double w = Timing.LineTime / Timing.DotTime;
-        //     int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
-        //     int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
-        //     double step(double v) => Math.Ceiling(10d * (double)v / w) / 10d;
-        //     return step(y) * step(x) * 0.7 + 0.4;
-        // }
+        double PixelValue(double simulatedTime) {
+            double w = Timing.LineTime / Timing.DotTime;
+            int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
+            int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
+            double step(double v) => Math.Ceiling(10d * v / w) / 10d;
+            return step(y) * step(x) * 0.7 + 0.3;
+        }
 
     }
 }
