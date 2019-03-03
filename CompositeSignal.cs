@@ -20,8 +20,8 @@ namespace CompositeVideoOscilloscope {
                 new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime },
                 new Signal { Value = dark , Duration = timing.SyncTimes.LineSyncTime } };
             var syns = new[] {
-                new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.EquPulseTime } };
+                new Signal { Value = dark , Duration = 0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime },
+                new Signal { Value = sync, Duration = timing.SyncTimes.EquPulseTime } };
             var line = new[] {
                 new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
                 new Signal { Value = dark , Duration = timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime },
