@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
@@ -7,11 +6,12 @@ namespace CompositeVideoOscilloscope {
     public class CompositeSignal {
         readonly TimingConstants Timing;
         readonly SignalBlocks[] Frame;
+        readonly ILayer[] Layers;
 
         double LastFrameTime = 0;
 
         struct Signal { public double Value; public double Duration; };
-        struct SignalBlocks { public int Count; public Signal[] Signals; };
+        struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
 
         static SignalBlocks[] InterlacedPALFrame(TimingConstants timing) {
             double dark = timing.SyncTimes.BlackLevel, sign = 1d, sync = 0d;
@@ -36,15 +36,16 @@ namespace CompositeVideoOscilloscope {
             return new[] {
                 new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
                 new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line },
+                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 0 },
                 new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 4  , Signals = syns },
                 new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line },
+                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 1 },
                 new SignalBlocks { Count = 6  , Signals = syns },
             };
         }
 
-        public CompositeSignal(TimingConstants timing) {
+        public CompositeSignal(TimingConstants timing, ILayer[] layers) {
+            Layers = layers;
             Timing = timing;
             Frame = InterlacedPALFrame(timing);
         }
@@ -60,29 +61,35 @@ namespace CompositeVideoOscilloscope {
         }
 
         (List<double>, double) GenerateFrame() {
+            int x = 0, y = 0;
             double time = 0, signalStart = 0;
             double dt = 1d / Timing.BandwidthFreq;
             var frameValues = new List<double>();
             foreach (var block in Frame) {
+                y = block.sy;
                 for (int i = 0; i < block.Count; i++) {
                     foreach (var signal in block.Signals) {
+                        x = 0;
                         for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 1d ? PixelValue(time) : signal.Value);
+                            frameValues.Add(signal.Value == 1d ? PixelValue(x,y) : signal.Value);
+                            x++;
                         }
                         signalStart += signal.Duration;
                     }
+                    y += block.dy;
                 }
             }
             return (frameValues, time);
         }
 
-        double PixelValue(double simulatedTime) {
-            double w = Timing.LineTime / Timing.DotTime;
-            int x = (int)(simulatedTime % Timing.LineTime / Timing.DotTime);
-            int y = (int)(simulatedTime % (Timing.FrameTime) / Timing.LineTime);
-            double step(double v) => Math.Ceiling(10d * v / w) / 10d;
-            return step(y) * step(x) * 0.7 + 0.3;
+        double PixelValue(int x, int y) {
+            double currentValue = 1;
+            foreach (var layer in Layers) {
+                currentValue = layer.PixelValue(x,y, currentValue);
+            }
+            currentValue *= (1 - Timing.SyncTimes.BlackLevel);
+            currentValue += Timing.SyncTimes.BlackLevel;
+            return currentValue > 1d ? 1 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
         }
-
     }
 }

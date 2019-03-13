@@ -12,11 +12,11 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task Run(CancellationToken canceller) {
-            var signal = new CompositeSignal(Timing);
+            var signal = new CompositeSignal(Timing, new ILayer[] { new AxisLayer(Timing), new BackgroundLayer(Timing) });
             var sw = new Stopwatch();
             sw.Start();
             while (!canceller.IsCancellationRequested) {
-                await Task.Delay(((int)(0.5 * 1000 * Timing.FrameTime)));
+                await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime));
                 Output.Set(signal.Generate(sw.Elapsed.TotalSeconds));
             }
         }
