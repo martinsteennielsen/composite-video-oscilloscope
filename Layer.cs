@@ -31,8 +31,8 @@ namespace CompositeVideoOscilloscope {
         public AxisLayer(TimingConstants timing) : base(timing, 0, 200, 0, 200) { }
 
         protected override double Value(double x, double y) {
-            if (Math.Abs(x % 20) < 0.4) { return .8; }
-            if (Math.Abs(y % 20) < 0.4) { return 0.1; }
+            if (Math.Abs(x % 20) < 0.4) { return 0; }
+            if (Math.Abs(y % 20) < 0.2) { return 0; }
             return 1;
         }
     }
@@ -43,8 +43,8 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class SignalLayer : Layer {
-        public SignalLayer(TimingConstants timing) : base(timing, -100, 100, -100, 100) { }
-        protected override double Value(double x, double y) => 0.5 + 0.5 * (y / 100) * (x / 100);
+        public SignalLayer(TimingConstants timing) : base(timing, 0, 20, -2, 2) { }
+        protected override double Value(double x, double y) => Math.Abs(Math.Sin(x) - y) < 0.02 ? 10 : 1;
     }
 
 }

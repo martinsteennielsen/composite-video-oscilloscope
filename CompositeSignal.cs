@@ -36,10 +36,10 @@ namespace CompositeVideoOscilloscope {
             return new[] {
                 new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
                 new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 0 },
+                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 1 },
                 new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 4  , Signals = syns },
                 new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 1 },
+                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 0 },
                 new SignalBlocks { Count = 6  , Signals = syns },
             };
         }
