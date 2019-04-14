@@ -6,7 +6,7 @@ namespace CompositeVideoOscilloscope {
     public class CompositeSignal {
         readonly TimingConstants Timing;
         readonly SignalBlocks[] Frame;
-        readonly ILayer[] Layers;
+        readonly IScreenContent Content;
 
         double LastFrameTime = 0;
 
@@ -44,8 +44,8 @@ namespace CompositeVideoOscilloscope {
             };
         }
 
-        public CompositeSignal(TimingConstants timing, ILayer[] layers) {
-            Layers = layers;
+        public CompositeSignal(TimingConstants timing, IScreenContent content) {
+            Content = content;
             Timing = timing;
             Frame = InterlacedPALFrame(timing);
         }
@@ -71,7 +71,7 @@ namespace CompositeVideoOscilloscope {
                     foreach (var signal in block.Signals) {
                         x = 0;
                         for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 1d ? PixelValue(x,y) : signal.Value);
+                            frameValues.Add(signal.Value == 1d ? Content.PixelValue(x,y) : signal.Value);
                             x++;
                         }
                         signalStart += signal.Duration;
@@ -80,16 +80,6 @@ namespace CompositeVideoOscilloscope {
                 }
             }
             return (frameValues, time);
-        }
-
-        double PixelValue(int x, int y) {
-            double currentValue = 1;
-            foreach (var layer in Layers) {
-                currentValue = layer.PixelValue(x,y, currentValue);
-            }
-            currentValue *= (1 - Timing.SyncTimes.BlackLevel);
-            currentValue += Timing.SyncTimes.BlackLevel;
-            return currentValue > 1d ? 1 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
         }
     }
 }

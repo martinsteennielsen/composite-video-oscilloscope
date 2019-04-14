@@ -1,5 +1,5 @@
 ﻿namespace CompositeVideoOscilloscope {
-    public class LayerBackground : ILayer {
-        public double PixelValue(int x, int y, double currentValue) => 0.2;
+    public class LayerBackground : IScreenContent {
+        public double PixelValue(int x, int y) => 0.2;
     }
 }
