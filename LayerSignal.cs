@@ -3,14 +3,22 @@
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
         private readonly View View;
+        double[,] Buffer;
 
         public LayerSignal(ScreenResolution resolution) {
             View = new View(0, 20, -2, 2, resolution: new ScreenResolution(resolution.Width, resolution.Height));
+            Buffer = new double[3*resolution.Width, 3];
         }
 
-        public double PixelValue(int x, int y) => Value(pos: View.Transform(x, y));
+        public double PixelValue(int x, int y) => Value(2*x,2*y, pos: View.Transform(x,y));
 
-        private double Value((double time, double voltage) pos) {
+        private double Value(int x, int y, (double time, double voltage) pos) {
+            ref double bp(int bx,int by) => ref Buffer[bx % Buffer.Length, by % 3];
+            bp(x+2,y+2) = SubValue(pos);
+            return ( bp(x,y) + bp(x+1,y) + bp(x+2,y) + bp(x, y+1) + bp(x+1, y+1) + bp(x+2, y+1) + bp(x, y+2) + bp(x+1, y+2) + bp(x+2, y+2) ) / 9;
+        }
+
+        private double SubValue((double time, double voltage) pos) {
             double s1 = Signal(pos.time) - pos.voltage - View.Scaler.dY;
             double s2 = Signal(pos.time) - pos.voltage + View.Scaler.dY;
             double s3 = Signal(pos.time - View.Scaler.dX) - pos.voltage;
