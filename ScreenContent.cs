@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CompositeVideoOscilloscope {
 
@@ -14,8 +12,8 @@ namespace CompositeVideoOscilloscope {
 
         public ScreenContent(TimingConstants timing) {
             Timing = timing;
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(timing, gridPercentage: 7), new LayerSignal(timing) };
-
+            var resolution = new ScreenResolution(timing);
+            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(resolution, gridPercentage: 7), new LayerSignal(resolution) };
         }
 
         public double PixelValue(int x, int y) {

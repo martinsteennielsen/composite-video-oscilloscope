@@ -5,15 +5,15 @@ namespace CompositeVideoOscilloscope {
 
 
     public class LayerAxis : IScreenContent {
-        readonly double GridPercentage;
         readonly View View;
+        readonly double GridPercentage;
 
-        public LayerAxis(TimingConstants timing, double gridPercentage) {
-            View = new View(timing, 0, 100, 0, 100);
+        public LayerAxis(ScreenResolution resolution, double gridPercentage) {
+            View = new View(0, 100, 0, 100, resolution);
             GridPercentage = gridPercentage;
         }
 
-        public double PixelValue(int x, int y) => Value( View.Scale(x,y) );
+        public double PixelValue(int x, int y) => Value( View.Transform(x,y) );
 
         private double Value( (double x, double y) position) {
             if (Math.Abs(position.x % GridPercentage) < View.Scaler.dX) { return 0; }

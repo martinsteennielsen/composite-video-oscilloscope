@@ -4,11 +4,11 @@ namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
         private readonly View View;
 
-        public LayerSignal(TimingConstants timing) {
-            View = new View(timing, 0, 20, -2, 2);
+        public LayerSignal(ScreenResolution resolution) {
+            View = new View(0, 20, -2, 2, resolution: new ScreenResolution(resolution.Width, resolution.Height));
         }
 
-        public double PixelValue(int x, int y) => Value(pos: View.Scale(x, y));
+        public double PixelValue(int x, int y) => Value(pos: View.Transform(x, y));
 
         private double Value((double time, double voltage) pos) {
             double s1 = Signal(pos.time) - pos.voltage - View.Scaler.dY;
