@@ -3,26 +3,30 @@
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
         private readonly View View;
-        double[,] Buffer;
 
         public LayerSignal(ScreenResolution resolution) {
-            View = new View(0, 20, -2, 2, resolution: new ScreenResolution(resolution.Width, resolution.Height));
-            Buffer = new double[3*resolution.Width, 3];
+            View = new View(0, 20, -2, 2, resolution: new ScreenResolution(2*resolution.Width, 2*resolution.Height));
         }
 
-        public double PixelValue(int x, int y) => Value(2*x,2*y, pos: View.Transform(x,y));
+        public double PixelValue(int x, int y) => Value(2*x,2*y);
 
-        private double Value(int x, int y, (double time, double voltage) pos) {
-            ref double bp(int bx,int by) => ref Buffer[bx % Buffer.Length, by % 3];
-            bp(x+2,y+2) = SubValue(pos);
-            return ( bp(x,y) + bp(x+1,y) + bp(x+2,y) + bp(x, y+1) + bp(x+1, y+1) + bp(x+2, y+1) + bp(x, y+2) + bp(x+1, y+2) + bp(x+2, y+2) ) / 9;
+        private double Value(int x, int y) {
+            (double time, double voltage) = View.Transform(x, y);
+
+            var p1 = 0.5 * SubValue(time - View.Scaler.dX, voltage - View.Scaler.dY);
+            var p2 = 0.5 * SubValue(time + View.Scaler.dX, voltage - View.Scaler.dY);
+            var p3 = 0.5 * SubValue(time - View.Scaler.dX, voltage + View.Scaler.dY);
+            var p4 = 0.5 * SubValue(time + View.Scaler.dX, voltage + View.Scaler.dY);
+            var p5 = 2 * SubValue(time, voltage);
+
+            return ( p1 + p2 + p3 + p4 + p5 ) / 4;
         }
 
-        private double SubValue((double time, double voltage) pos) {
-            double s1 = Signal(pos.time) - pos.voltage - View.Scaler.dY;
-            double s2 = Signal(pos.time) - pos.voltage + View.Scaler.dY;
-            double s3 = Signal(pos.time - View.Scaler.dX) - pos.voltage;
-            double s4 = Signal(pos.time + View.Scaler.dX) - pos.voltage;
+        private int SubValue(double time, double voltage) {
+            double s1 = Signal(time) - voltage - View.Scaler.dY;
+            double s2 = Signal(time) - voltage + View.Scaler.dY;
+            double s3 = Signal(time - View.Scaler.dX) - voltage;
+            double s4 = Signal(time + View.Scaler.dX) - voltage;
             int d1 = s1 > 0 ? 1 : -1;
             int d2 = s2 > 0 ? 1 : -1;
             int d3 = s3 > 0 ? 1 : -1;
@@ -30,6 +34,16 @@ namespace CompositeVideoOscilloscope {
             return Math.Abs(d1 + d2 + d3 + d4) == 4 ? 1 : 4;
         }
 
+
+        // Define function PlotAntiAliasedPoint(number x, number y)
+        // For roundedx = floor(x) to ceil(x ) do
+        //    For roundedy = floor(y) to ceil(y ) do
+        //      percent_x = 1 - abs(x - roundedx )
+        //      percent_y = 1 - abs(y - roundedy )
+        //      percent = percent_x* percent_y
+        //      DrawPixel(coordinates roundedx, roundedy, color percent (range 0-1) )
+
+        
         double Signal(double t) => Math.Sin(t) - 0.5 * Math.Sin(t * 3);
     }
 }
