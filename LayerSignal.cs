@@ -13,13 +13,13 @@ namespace CompositeVideoOscilloscope {
         private double Value(int x, int y) {
             (double time, double voltage) = View.Transform(x, y);
 
-            var p1 = 0.5 * SubValue(time - View.Scaler.dX, voltage - View.Scaler.dY);
-            var p2 = 0.5 * SubValue(time + View.Scaler.dX, voltage - View.Scaler.dY);
-            var p3 = 0.5 * SubValue(time - View.Scaler.dX, voltage + View.Scaler.dY);
-            var p4 = 0.5 * SubValue(time + View.Scaler.dX, voltage + View.Scaler.dY);
-            var p5 = 2 * SubValue(time, voltage);
+            var p1 = SubValue(time - View.Scaler.dX, voltage - View.Scaler.dY);
+            var p2 = SubValue(time + View.Scaler.dX, voltage - View.Scaler.dY);
+            var p3 = SubValue(time - View.Scaler.dX, voltage + View.Scaler.dY);
+            var p4 = SubValue(time + View.Scaler.dX, voltage + View.Scaler.dY);
+            var p5 = SubValue(time, voltage) << 2;
 
-            return ( p1 + p2 + p3 + p4 + p5 ) / 4;
+            return (double)  ( p1 + p2 + p3 + p4 + p5 ) / 8;
         }
 
         private int SubValue(double time, double voltage) {
