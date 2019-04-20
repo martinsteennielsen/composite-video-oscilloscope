@@ -6,8 +6,8 @@ namespace CompositeVideoOscilloscope {
         public double FrontPorchTime;
         public double EquPulseTime;
         public double VerticalSerrationTime;
-        public double BlackLevel;
-        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = 0.3 };
+        public int BlackLevel;
+        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3) };
     }
 
 

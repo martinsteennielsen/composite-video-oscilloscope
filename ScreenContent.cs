@@ -3,7 +3,7 @@
 namespace CompositeVideoOscilloscope {
 
     public interface IScreenContent {
-        double PixelValue(int x, int y);
+        int PixelValue(int x, int y);
     }
 
     public class ScreenContent : IScreenContent {
@@ -16,15 +16,16 @@ namespace CompositeVideoOscilloscope {
             Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(resolution, gridPercentage: 7), new LayerSignal(resolution) };
         }
 
-        public double PixelValue(int x, int y) {
-            double currentValue = 1;
+        public int PixelValue(int x, int y) {
+            int currentValue = 255;
             foreach (var layer in Layers) {
                 currentValue *= layer.PixelValue(x, y);
+                currentValue /= 255;
             }
-            currentValue *= (1 - Timing.SyncTimes.BlackLevel);
+            currentValue *= (255 - Timing.SyncTimes.BlackLevel);
+            currentValue /= 255;
             currentValue += Timing.SyncTimes.BlackLevel;
-            return currentValue > 1 ? 1 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
+            return currentValue > 255 ? 255 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
         }
     }
-
 }

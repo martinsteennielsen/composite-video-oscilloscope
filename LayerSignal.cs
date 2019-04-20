@@ -8,9 +8,9 @@ namespace CompositeVideoOscilloscope {
             View = new View(0, 20, -2, 2, resolution: new ScreenResolution(2*resolution.Width, 2*resolution.Height));
         }
 
-        public double PixelValue(int x, int y) => Value(2*x,2*y);
+        public int PixelValue(int x, int y) => Value(2*x,2*y);
 
-        private double Value(int x, int y) {
+        private int Value(int x, int y) {
             (double time, double voltage) = View.Transform(x, y);
 
             var p1 = SubValue(time - View.Scaler.dX, voltage - View.Scaler.dY);
@@ -19,7 +19,7 @@ namespace CompositeVideoOscilloscope {
             var p4 = SubValue(time + View.Scaler.dX, voltage + View.Scaler.dY);
             var p5 = SubValue(time, voltage) << 2;
 
-            return (double)  ( p1 + p2 + p3 + p4 + p5 ) / 8;
+            return (int)(255*( p1 + p2 + p3 + p4 + p5 ) / 8);
         }
 
         private int SubValue(double time, double voltage) {
@@ -34,16 +34,6 @@ namespace CompositeVideoOscilloscope {
             return Math.Abs(d1 + d2 + d3 + d4) == 4 ? 1 : 4;
         }
 
-
-        // Define function PlotAntiAliasedPoint(number x, number y)
-        // For roundedx = floor(x) to ceil(x ) do
-        //    For roundedy = floor(y) to ceil(y ) do
-        //      percent_x = 1 - abs(x - roundedx )
-        //      percent_y = 1 - abs(y - roundedy )
-        //      percent = percent_x* percent_y
-        //      DrawPixel(coordinates roundedx, roundedy, color percent (range 0-1) )
-
-        
         double Signal(double t) => Math.Sin(t) - 0.5 * Math.Sin(t * 3);
     }
 }

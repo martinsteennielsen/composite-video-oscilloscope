@@ -13,12 +13,12 @@ namespace CompositeVideoOscilloscope {
             GridPercentage = gridPercentage;
         }
 
-        public double PixelValue(int x, int y) => Value( View.Transform(x,y) );
+        public int PixelValue(int x, int y) => Value( View.Transform(x,y) );
 
-        private double Value( (double x, double y) position) {
+        private int  Value( (double x, double y) position) {
             if (Math.Abs(position.x % GridPercentage) < View.Scaler.dX) { return 0; }
             if (Math.Abs(position.y % GridPercentage) < View.Scaler.dY) { return 0; }
-            return 1;
+            return 255;
         }
     }
 }

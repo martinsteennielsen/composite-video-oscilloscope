@@ -10,11 +10,11 @@ namespace CompositeVideoOscilloscope {
 
         double LastFrameTime = 0;
 
-        struct Signal { public double Value; public double Duration; };
+        struct Signal { public int Value; public double Duration; };
         struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
 
         static SignalBlocks[] InterlacedPALFrame(TimingConstants timing) {
-            double dark = timing.SyncTimes.BlackLevel, sign = 1d, sync = 0d;
+            int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
             var synl = new[] {
                 new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime },
@@ -50,28 +50,28 @@ namespace CompositeVideoOscilloscope {
             Frame = InterlacedPALFrame(timing);
         }
 
-        public List<double> Generate(double endTime) {
+        public List<int> Generate(double endTime) {
             if (endTime > LastFrameTime + (2d * Timing.FrameTime)) {
                 var (frame, frameDuration) = GenerateFrame();
                 LastFrameTime += frameDuration;
                 return frame;
             } else {
-                return new List<double>();
+                return new List<int>();
             }
         }
 
-        (List<double>, double) GenerateFrame() {
+        (List<int>, double) GenerateFrame() {
             int x = 0, y = 0;
             double time = 0, signalStart = 0;
             double dt = 1d / Timing.BandwidthFreq;
-            var frameValues = new List<double>();
+            var frameValues = new List<int>();
             foreach (var block in Frame) {
                 y = block.sy;
                 for (int i = 0; i < block.Count; i++) {
                     foreach (var signal in block.Signals) {
                         x = 0;
                         for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 1d ? Content.PixelValue(x,y) : signal.Value);
+                            frameValues.Add(signal.Value == 255 ? Content.PixelValue(x,y) : signal.Value);
                             x++;
                         }
                         signalStart += signal.Duration;
