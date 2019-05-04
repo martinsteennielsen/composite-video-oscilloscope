@@ -3,16 +3,22 @@
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
         private readonly View View;
+        private readonly InputSignal Signal; 
 
-        public LayerSignal(ScreenResolution resolution) {
-            View = new View(0, 20, -2, 2, resolution: new ScreenResolution(2*resolution.Width, 2*resolution.Height));
+        public LayerSignal(ScreenResolution resolution, InputSignal signal) {
+            Signal = signal;
+            View = new View(20, 40, -1, 1, resolution: new ScreenResolution(2*resolution.Width, 2*resolution.Height));
         }
 
-        public int PixelValue(int x, int y) => Value(2*x,2*y);
+        public int PixelValue(int x, int y) => Value(2*x, 2*y);
 
         private int Value(int x, int y) {
             (double time, double voltage) = View.Transform(x, y);
 
+             if (!Signal.TryGet(time, out double dummy)) {
+                 return 255;
+             } 
+             
             var p1 = SubValue(time - View.Scaler.dX, voltage - View.Scaler.dY);
             var p2 = SubValue(time + View.Scaler.dX, voltage - View.Scaler.dY);
             var p3 = SubValue(time - View.Scaler.dX, voltage + View.Scaler.dY);
@@ -23,10 +29,12 @@ namespace CompositeVideoOscilloscope {
         }
 
         private int SubValue(double time, double voltage) {
-            double s1 = Signal(time) - voltage - View.Scaler.dY;
-            double s2 = Signal(time) - voltage + View.Scaler.dY;
-            double s3 = Signal(time - View.Scaler.dX) - voltage;
-            double s4 = Signal(time + View.Scaler.dX) - voltage;
+            if (!Signal.TryGet(time, out double value)) { return 1;}
+
+            double s1 = value - voltage - View.Scaler.dY;
+            double s2 = value - voltage + View.Scaler.dY;
+            double s3 = ( Signal.TryGet(time - View.Scaler.dX, out double v1) ? v1 : value) - voltage;
+            double s4 = ( Signal.TryGet(time + View.Scaler.dX, out double v2) ? v2 : value) - voltage;
             int d1 = s1 > 0 ? 1 : -1;
             int d2 = s2 > 0 ? 1 : -1;
             int d3 = s3 > 0 ? 1 : -1;
@@ -34,6 +42,5 @@ namespace CompositeVideoOscilloscope {
             return Math.Abs(d1 + d2 + d3 + d4) == 4 ? 1 : 4;
         }
 
-        double Signal(double t) => Math.Sin(t) - 0.5 * Math.Sin(t * 3);
     }
 }

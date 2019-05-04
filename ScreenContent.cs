@@ -10,10 +10,10 @@ namespace CompositeVideoOscilloscope {
         readonly TimingConstants Timing;
         readonly IScreenContent[] Layers;
 
-        public ScreenContent(TimingConstants timing) {
+        public ScreenContent(TimingConstants timing, InputSignal signal) {
             Timing = timing;
             var resolution = new ScreenResolution(timing);
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(resolution, gridPercentage: 7), new LayerSignal(resolution) };
+            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(resolution, gridPercentage: 7), new LayerSignal(resolution, signal) };
         }
 
         public int PixelValue(int x, int y) {
