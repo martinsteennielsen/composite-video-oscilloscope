@@ -15,8 +15,6 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        double[] Values = new double[] {0,0,0,0,0};
-
         public bool TryGet(double time, out double value) {
             if (time < StartTime) {
                 value = 0;
@@ -28,27 +26,6 @@ namespace CompositeVideoOscilloscope {
             }
             int bufpos = (int)((time - StartTime) / SampleTime);
             value = Buffer[bufpos];
-            return true;
-        }
-
-        public bool TryGet(double time, double dt, out double[] values) {
-            values=Values;
-            if (time - 2*dt < StartTime) { 
-                return false; 
-            }
-            if (time + 2*dt >= EndTime) { 
-                return false;
-            }
-            int bufpos = (int)((time-StartTime-2*dt)/SampleTime);
-            values[0] = Buffer[bufpos];
-            bufpos = (int)((time-StartTime-dt)/SampleTime);
-            values[1] = Buffer[bufpos];
-            bufpos = (int)((time-StartTime)/SampleTime);
-            values[2] = Buffer[bufpos];
-            bufpos = (int)((time-StartTime + dt)/SampleTime);
-            values[3] = Buffer[bufpos];
-            bufpos = (int)((time-StartTime + 2*dt)/SampleTime);
-            values[4] = Buffer[bufpos];
             return true;
         }
 
