@@ -15,6 +15,8 @@ namespace CompositeVideoOscilloscope {
 
         public int PixelValue(int x, int y) => Value( View.Transform(x,y) );
 
+        public void VSync() { }
+
         private int  Value( (double x, double y) position) {
             if (Math.Abs(position.x % GridPercentage) < View.Scaler.dX) { return 0; }
             if (Math.Abs(position.y % GridPercentage) < View.Scaler.dY) { return 0; }

@@ -79,6 +79,7 @@ namespace CompositeVideoOscilloscope {
                     y += block.dy;
                 }
             }
+            Content.VSync();
             return (frameValues, time);
         }
     }

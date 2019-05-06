@@ -17,6 +17,20 @@ namespace CompositeVideoOscilloscope {
 
         double[] Values = new double[] {0,0,0,0,0};
 
+        public bool TryGet(double time, out double value) {
+            if (time < StartTime) {
+                value = 0;
+                return false;
+            }
+            if (time >= EndTime) {
+                value = 0;
+                return false;
+            }
+            int bufpos = (int)((time - StartTime) / SampleTime);
+            value = Buffer[bufpos];
+            return true;
+        }
+
         public bool TryGet(double time, double dt, out double[] values) {
             values=Values;
             if (time - 2*dt < StartTime) { 
