@@ -4,33 +4,34 @@ using System.Collections.Generic;
 namespace CompositeVideoOscilloscope {
 
     public class CompositeSignal {
+        const int ns = 10000000;
         readonly TimingConstants Timing;
         readonly SignalBlocks[] Frame;
         readonly IScreenContent Content;
 
         double LastFrameTime = 0;
 
-        struct Signal { public int Value; public double Duration; };
+        struct Signal { public int Value; public int Duration; };
         struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
 
         static SignalBlocks[] InterlacedPALFrame(TimingConstants timing) {
             int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
             var synl = new[] {
-                new Signal { Value = sync , Duration = 0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.LineSyncTime } };
+                new Signal { Value = sync , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.LineSyncTime )} };
             var syns = new[] {
-                new Signal { Value = dark , Duration = 0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime },
-                new Signal { Value = sync, Duration = timing.SyncTimes.EquPulseTime } };
+                new Signal { Value = dark , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new Signal { Value = sync,  Duration = (int)(ns * timing.SyncTimes.EquPulseTime) } };
             var line = new[] {
-                new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime },
-                new Signal { Value = sign , Duration = timing.LineTime - timing.SyncTimes.LineBlankingTime },
-                new Signal { Value = dark , Duration = timing.SyncTimes.FrontPorchTime },
+                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (int)(ns * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sign , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.FrontPorchTime) },
                 };
             var blank = new[] {
-                new Signal { Value = sync , Duration = timing.SyncTimes.LineSyncTime },
-                new Signal { Value = dark , Duration = timing.LineTime - timing.SyncTimes.LineSyncTime },
+                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
                 };
 
             return new[] {
@@ -62,8 +63,8 @@ namespace CompositeVideoOscilloscope {
 
         (List<int>, double) GenerateFrame() {
             int x = 0, y = 0;
-            double time = 0, signalStart = 0;
-            double dt = 1d / Timing.BandwidthFreq;
+            int time = 0, signalStart = 0;
+            int dt = (int)(ns / Timing.BandwidthFreq);
             var frameValues = new List<int>();
             foreach (var block in Frame) {
                 y = block.sy;
@@ -80,7 +81,7 @@ namespace CompositeVideoOscilloscope {
                 }
             }
             Content.VSync();
-            return (frameValues, time);
+            return (frameValues, time / ns);
         }
     }
 }
