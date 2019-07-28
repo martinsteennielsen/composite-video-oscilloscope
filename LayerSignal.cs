@@ -9,10 +9,10 @@ namespace CompositeVideoOscilloscope {
         private readonly double[] SigBuf;
         private int MinX =2, MaxX;
 
-        public LayerSignal(ScreenResolution resolution, InputSignal signal) {
+        public LayerSignal(ViewPort screen, InputSignal signal) {
             Signal = signal;
-            View = new ViewPort(0,0, 2*resolution.Width, 2*resolution.Height).SetView(20, 2, 40, -2);
-            SigBuf = new double[2 * resolution.Width];
+            View = new ViewPort(0,0, 2*screen.Width, 2*screen.Height).SetView(20, 2, 40, -2);
+            SigBuf = new double[2 * (int)screen.Width];
             dT = View.Transform(1,0).x - View.Transform(0,0).x;
             dV = View.Transform(0,1).y - View.Transform(0,0).y;
             d2T = 2 * dT;
@@ -34,7 +34,7 @@ namespace CompositeVideoOscilloscope {
         public int PixelValue(int x, int y) => Value(x << 1, y << 1);
 
         private int Value(int x, int y) {
-            if (x < MinX  || x > MaxX ) { return 255; }
+            if (x <= MinX  || x >= MaxX ) { return 255; }
 
             double v = View.Transform(x, y).y;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;

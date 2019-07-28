@@ -4,20 +4,19 @@
         public readonly double[] Matrix;
         public readonly double Top, Left, Bottom, Right, Width, Height;
         
-        private ViewPort(double left, double top, double right, double bottom, double[] matrix) {
+        public ViewPort(double left, double top, double right, double bottom, double[] matrix = null) {
             Top = top; Left=left; Bottom = bottom; Right=right;
             Width = Right - Left; Height = Bottom-Top;
-            Matrix = matrix; 
+            Matrix = matrix ?? Scale(1,1); 
         }
-
-        public ViewPort(double portLeft, double portTop, double portRight, double portBottom) :
-            this(portLeft, portTop, portRight, portBottom, Scale(1,1)) { }
 
         public ViewPort SetView(double viewLeft, double viewTop, double viewRight, double viewBottom) {
             double sx = (viewRight-viewLeft)/(Right-Left), sy = (viewBottom-viewTop)/(Bottom-Top);
             return new ViewPort(Left, Top, Right, Bottom, Multiply ( Translate(viewLeft,viewTop), Scale(sx,sy) ) );
         }
-
+        public bool Visible(double x, double y) =>
+            y>=Top && y<=Bottom && x >= Left && x <= Right;
+            
         public (double x, double y) Transform(double x, double y) =>
             ( x*Matrix[0] + y * Matrix[1] + Matrix[2], x * Matrix[3] + y*Matrix[4] + Matrix[5]  );
 

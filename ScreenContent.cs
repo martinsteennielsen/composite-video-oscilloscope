@@ -10,14 +10,17 @@ namespace CompositeVideoOscilloscope {
     public class ScreenContent : IScreenContent {
         readonly TimingConstants Timing;
         readonly IScreenContent[] Layers;
+        readonly ViewPort Screen;
 
         public ScreenContent(TimingConstants timing, InputSignal signal) {
             Timing = timing;
-            var resolution = new ScreenResolution(timing);
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(resolution, gridPercentage: 7), new LayerSignal(resolution, signal) };
+            Screen = new ViewPort(0,0, timing.BandwidthFreq/timing.HFreq, 2*timing.HFreq/timing.VFreq );
+            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, gridPercentage: 7), new LayerSignal(Screen, signal) };
         }
 
         public int PixelValue(int x, int y) {
+            if (!Screen.Visible(x,y)) { return 0; }
+
             int currentValue = 255;
             foreach (var layer in Layers) {
                 currentValue *= layer.PixelValue(x, y);
