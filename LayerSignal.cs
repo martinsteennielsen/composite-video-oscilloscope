@@ -3,7 +3,7 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
-        private readonly View View;
+        private readonly ViewPort View;
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
         private readonly double[] SigBuf;
@@ -11,18 +11,18 @@ namespace CompositeVideoOscilloscope {
 
         public LayerSignal(ScreenResolution resolution, InputSignal signal) {
             Signal = signal;
-            View = new View(20, 40, -2, 2, resolution: new ScreenResolution(2 * resolution.Width, 2 * resolution.Height));
+            View = new ViewPort(0,0, 2*resolution.Width, 2*resolution.Height).SetView(20, 2, 40, -2);
             SigBuf = new double[2 * resolution.Width];
-            dT = View.Scaler.dX;
-            dV = View.Scaler.dY;
+            dT = View.Transform(1,0).x - View.Transform(0,0).x;
+            dV = View.Transform(0,1).y - View.Transform(0,0).y;
             d2T = 2 * dT;
             d2V = 2 * dV;
         }
 
         public void VSync() {
             MinX=int.MaxValue; MaxX=int.MinValue;
-            for (int x=0; x<View.Resolution.Width; x++) {
-                if (Signal.TryGet(time: View.Transform(x, 0).outX, value: out SigBuf[x])) {
+            for (int x=0; x<View.Width; x++) {
+                if (Signal.TryGet(time: View.Transform(x, 0).x, value: out SigBuf[x])) {
                     if (x>MaxX) { MaxX =x;}
                     if (x<MinX) { MinX =x;}
                 }
@@ -36,7 +36,7 @@ namespace CompositeVideoOscilloscope {
         private int Value(int x, int y) {
             if (x < MinX  || x > MaxX ) { return 255; }
 
-            double v = View.Transform(x, y).outY;
+            double v = View.Transform(x, y).y;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
             bool dr = SigBuf[x+1] - v > 0, dd = SigBuf[x] - vd > 0, du = SigBuf[x] - vu > 0, dl = SigBuf[x-1] - v > 0;
             int r = 0;

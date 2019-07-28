@@ -17,7 +17,7 @@ namespace CompositeVideoOscilloscope {
             var sw = new Stopwatch();
             sw.Start();
             while (!canceller.IsCancellationRequested) {
-                await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime));
+                await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime)).ConfigureAwait(false);
                 Output.Set(signal.Generate(sw.Elapsed.TotalSeconds));
             }
         }
