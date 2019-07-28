@@ -3,15 +3,15 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
-        private readonly ViewPort View;
+        private readonly Viewport View;
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
         private readonly double[] SigBuf;
         private int MinX =2, MaxX;
 
-        public LayerSignal(ViewPort screen, InputSignal signal) {
+        public LayerSignal(Viewport screen, InputSignal signal) {
             Signal = signal;
-            View = new ViewPort(0,0, 2*screen.Width, 2*screen.Height).SetView(20, 2, 40, -2);
+            View = new Viewport(0,0, 2*screen.Width, 2*screen.Height).SetView(20, 2, 40, -2);
             SigBuf = new double[2 * (int)screen.Width];
             dT = View.Transform(1,0).x - View.Transform(0,0).x;
             dV = View.Transform(0,1).y - View.Transform(0,0).y;

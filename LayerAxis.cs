@@ -4,12 +4,12 @@
 namespace CompositeVideoOscilloscope {
 
     public class LayerAxis : IScreenContent {
-        readonly ViewPort View;
+        readonly Viewport View;
         readonly double GridPercentage;
         readonly double dX, dY;
 
-        public LayerAxis(ViewPort screen, double gridPercentage) {
-            View = new ViewPort(0,0, screen.Width, screen.Height).SetView(0,0,100,100);
+        public LayerAxis(Viewport screen, double gridPercentage) {
+            View = new Viewport(0,0, screen.Width, screen.Height).SetView(0,0,100,100);
             GridPercentage = gridPercentage;
             dX = View.Transform(1,0).x - View.Transform(0,0).x;
             dY = View.Transform(0,1).y - View.Transform(0,0).y;

@@ -1,18 +1,18 @@
 ﻿namespace CompositeVideoOscilloscope {
 
-    public struct ViewPort {
+    public struct Viewport {
         public readonly double[] Matrix;
         public readonly double Top, Left, Bottom, Right, Width, Height;
         
-        public ViewPort(double left, double top, double right, double bottom, double[] matrix = null) {
+        public Viewport(double left, double top, double right, double bottom, double[] matrix = null) {
             Top = top; Left=left; Bottom = bottom; Right=right;
             Width = Right - Left; Height = Bottom-Top;
             Matrix = matrix ?? Scale(1,1); 
         }
 
-        public ViewPort SetView(double viewLeft, double viewTop, double viewRight, double viewBottom) {
+        public Viewport SetView(double viewLeft, double viewTop, double viewRight, double viewBottom) {
             double sx = (viewRight-viewLeft)/(Right-Left), sy = (viewBottom-viewTop)/(Bottom-Top);
-            return new ViewPort(Left, Top, Right, Bottom, Multiply ( Translate(viewLeft,viewTop), Scale(sx,sy) ) );
+            return new Viewport(Left, Top, Right, Bottom, Multiply ( Translate(viewLeft,viewTop), Scale(sx,sy) ) );
         }
         public bool Visible(double x, double y) =>
             y>=Top && y<=Bottom && x >= Left && x <= Right;

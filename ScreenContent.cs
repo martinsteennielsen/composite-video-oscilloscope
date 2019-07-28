@@ -10,11 +10,11 @@ namespace CompositeVideoOscilloscope {
     public class ScreenContent : IScreenContent {
         readonly TimingConstants Timing;
         readonly IScreenContent[] Layers;
-        readonly ViewPort Screen;
+        readonly Viewport Screen;
 
         public ScreenContent(TimingConstants timing, InputSignal signal) {
             Timing = timing;
-            Screen = new ViewPort(0,0, timing.BandwidthFreq/timing.HFreq, 2*timing.HFreq/timing.VFreq );
+            Screen = new Viewport(0,0, timing.BandwidthFreq/timing.HFreq, 2*timing.HFreq/timing.VFreq );
             Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, gridPercentage: 7), new LayerSignal(Screen, signal) };
         }
 
