@@ -14,7 +14,6 @@ namespace CompositeVideoOscilloscope {
 
         public ScreenContent(TimingConstants timing, InputSignal signal) {
             Timing = timing;
-            //Screen = new Viewport(50, 50, -100 + timing.BandwidthFreq / timing.HFreq, -100 + 2 * timing.HFreq / timing.VFreq);
             Screen = new Viewport(0, 0, timing.BandwidthFreq / timing.HFreq, 2 * timing.HFreq / timing.VFreq);
             Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, gridPercentage: 7), new LayerSignal(Screen, signal) };
         }

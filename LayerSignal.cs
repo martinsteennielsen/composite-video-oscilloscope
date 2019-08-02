@@ -3,8 +3,7 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
-        private readonly Viewport View;
-        private int BuffSize;
+        private readonly Viewport View, Screen;
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
         private readonly double[] SigBuf;
@@ -12,28 +11,30 @@ namespace CompositeVideoOscilloscope {
 
         public LayerSignal(Viewport screen, InputSignal signal) {
             Signal = signal;
+            Screen = screen;
             View = screen.SetView(20, 2, 40, -2);
-            BuffSize = (int)(2 * screen.Width);
-            SigBuf = new double[BuffSize];
-            dT = View.Transform(1,0).x - View.Transform(0,0).x;
-            dV = View.Transform(0,1).y - View.Transform(0,0).y;
+            SigBuf = new double[(int)(2 * screen.Width)];
+            dT = View.Transform(0.5, 0).x - View.Transform(0,0).x;
+            dV = View.Transform(0, 0.5).y - View.Transform(0,0).y;
             d2T = 2 * dT;
             d2V = 2 * dV;
         }
 
         public void VSync() {
             MinX=int.MaxValue; MaxX=int.MinValue;
-            for (int x=0; x<BuffSize; x++) {
-                if (Signal.TryGet(time: View.Transform(x/2, 0).x, value: out SigBuf[x])) {
+            double t = View.Left;
+            for (int x=0; x<SigBuf.Length; x++) {
+                if (Signal.TryGet(time: t, value: out SigBuf[x])) {
                     if (x>MaxX) { MaxX =x;}
                     if (x<MinX) { MinX =x;}
                 }
+                t += dT;
             }
             MinX = Math.Max(2, MinX);
             MaxX = Math.Min(SigBuf.Length-2, MaxX);
         }
 
-        public int PixelValue(int x, int y) => Value(x*2, y*2);
+        public int PixelValue(int x, int y) => Value((x-(int)Screen.Left)*2, y*2);
 
         private int Value(int x, int y) {
             if (x <= MinX  || x >= MaxX ) { return 255; }
