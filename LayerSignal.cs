@@ -4,6 +4,7 @@ using System;
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
         private readonly Viewport View;
+        private int BuffSize;
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
         private readonly double[] SigBuf;
@@ -11,8 +12,9 @@ namespace CompositeVideoOscilloscope {
 
         public LayerSignal(Viewport screen, InputSignal signal) {
             Signal = signal;
-            View = new Viewport(0,0, 2*screen.Width, 2*screen.Height).SetView(20, 2, 40, -2);
-            SigBuf = new double[2 * (int)screen.Width];
+            View = screen.SetView(20, 2, 40, -2);
+            BuffSize = (int)(2 * screen.Width);
+            SigBuf = new double[BuffSize];
             dT = View.Transform(1,0).x - View.Transform(0,0).x;
             dV = View.Transform(0,1).y - View.Transform(0,0).y;
             d2T = 2 * dT;
@@ -21,8 +23,8 @@ namespace CompositeVideoOscilloscope {
 
         public void VSync() {
             MinX=int.MaxValue; MaxX=int.MinValue;
-            for (int x=0; x<View.Width; x++) {
-                if (Signal.TryGet(time: View.Transform(x, 0).x, value: out SigBuf[x])) {
+            for (int x=0; x<BuffSize; x++) {
+                if (Signal.TryGet(time: View.Transform(x/2, 0).x, value: out SigBuf[x])) {
                     if (x>MaxX) { MaxX =x;}
                     if (x<MinX) { MinX =x;}
                 }
@@ -31,12 +33,12 @@ namespace CompositeVideoOscilloscope {
             MaxX = Math.Min(SigBuf.Length-2, MaxX);
         }
 
-        public int PixelValue(int x, int y) => Value(x << 1, y << 1);
+        public int PixelValue(int x, int y) => Value(x*2, y*2);
 
         private int Value(int x, int y) {
             if (x <= MinX  || x >= MaxX ) { return 255; }
 
-            double v = View.Transform(x, y).y;
+            double v = View.Transform(0, y/2).y;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
             bool dr = SigBuf[x+1] - v > 0, dd = SigBuf[x] - vd > 0, du = SigBuf[x] - vu > 0, dl = SigBuf[x-1] - v > 0;
             int r = 0;

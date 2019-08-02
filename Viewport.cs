@@ -11,9 +11,11 @@
         }
 
         public Viewport SetView(double viewLeft, double viewTop, double viewRight, double viewBottom) {
-            double sx = (viewRight-viewLeft)/(Right-Left), sy = (viewBottom-viewTop)/(Bottom-Top);
-            return new Viewport(Left, Top, Right, Bottom, Multiply ( Translate(viewLeft,viewTop), Scale(sx,sy) ) );
+            double width = viewRight - viewLeft, height = viewBottom - viewTop;
+            var mtx = Multiply(Translate(viewLeft, viewTop), Multiply(Scale(width / Width, height / Height), Translate(-Left, -Top)));
+            return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Multiply(mtx,Matrix));
         }
+
         public bool Visible(double x, double y) =>
             y>=Top && y<=Bottom && x >= Left && x <= Right;
             
