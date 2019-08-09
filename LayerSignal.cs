@@ -9,10 +9,11 @@ namespace CompositeVideoOscilloscope {
         private readonly double[] SigBuf;
         private int MinX =2, MaxX;
 
-        public LayerSignal(Viewport screen, InputSignal signal) {
+        public LayerSignal(Viewport screen, InputSignal signal, Controls controls) {
             Signal = signal;
             Screen = screen;
-            View = screen.SetView(20, 2, 40, -2);
+            var divisionsPrQuadrant = controls.NoOfDivisions/2;
+            View = screen.SetView(0, controls.Units.Voltage*divisionsPrQuadrant, controls.Units.Time*controls.NoOfDivisions, -controls.Units.Voltage*divisionsPrQuadrant);
             SigBuf = new double[(int)(2 * screen.Width)];
             dT = View.Transform(0.5, 0).x - View.Transform(0,0).x;
             dV = View.Transform(0, 0.5).y - View.Transform(0,0).y;

@@ -7,7 +7,7 @@ namespace CompositeVideoOscilloscope {
         private readonly double StartTime, EndTime, SampleTime;
         public InputSignal() {
             Buffer = new double[1000];
-            StartTime=20; EndTime=40; SampleTime = (EndTime-StartTime)/Buffer.Length;
+            StartTime=0; EndTime=40; SampleTime = (EndTime-StartTime)/Buffer.Length;
             
             for (int idx=0; idx<Buffer.Length; idx++) {
                 double time = StartTime + idx*SampleTime;

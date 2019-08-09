@@ -12,13 +12,15 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task Run(CancellationToken canceller) {
-            var content = new ScreenContent(timing: Timing, signal: new InputSignal());
+            var controls = new Controls().WithUnits(timePrDivision: 5, voltagePrDivision: 0.5);
+            var content = new ScreenContent(Timing, controls, signal: new InputSignal());
             var signal = new CompositeSignal(Timing, content);
             var sw = new Stopwatch();
             sw.Start();
             while (!canceller.IsCancellationRequested) {
                 await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime)).ConfigureAwait(false);
-                Output.Set(signal.Generate(sw.Elapsed.TotalSeconds));
+                controls = controls.ElapseTime(sw.Elapsed.TotalSeconds);
+                Output.Set(signal.Generate(controls));
             }
         }
     }

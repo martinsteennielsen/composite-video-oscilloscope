@@ -11,11 +11,16 @@ namespace CompositeVideoOscilloscope {
         readonly TimingConstants Timing;
         readonly IScreenContent[] Layers;
         readonly Viewport Screen;
-
-        public ScreenContent(TimingConstants timing, InputSignal signal) {
+        public ScreenContent(TimingConstants timing, Controls controls, InputSignal signal) {
             Timing = timing;
-            Screen = new Viewport(0, 0, timing.BandwidthFreq / timing.HFreq, 2 * timing.HFreq / timing.VFreq);
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, gridPercentage: 7), new LayerSignal(Screen, signal) };
+
+            double fullWidth = timing.BandwidthFreq / timing.HFreq;
+            double fullHeight =  2 * timing.HFreq / timing.VFreq;
+            var verticalBorderSize = (int)(timing.SyncTimes.LineBlankingTime / timing.DotTime);
+            var horizontalBorderSize = 25;
+
+            Screen = new Viewport(0, 0, fullWidth - verticalBorderSize, fullHeight- horizontalBorderSize);
+            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, noOfDivisions: controls.NoOfDivisions), new LayerSignal(Screen, signal, controls) };
         }
 
         public int PixelValue(int x, int y) {

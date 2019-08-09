@@ -51,8 +51,8 @@ namespace CompositeVideoOscilloscope {
             Frame = InterlacedPALFrame(timing);
         }
 
-        public List<int> Generate(double endTime) {
-            if (endTime > LastFrameTime + (2d * Timing.FrameTime)) {
+        public List<int> Generate(Controls controls) {
+            if (controls.Elapsed > LastFrameTime + (2d * Timing.FrameTime)) {
                 var (frame, frameDuration) = GenerateFrame();
                 LastFrameTime += frameDuration;
                 return frame;
@@ -62,6 +62,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         (List<int>, double) GenerateFrame() {
+            Content.VSync();
             int x = 0, y = 0;
             int time = 0, signalStart = 0;
             int dt = (int)(ns / Timing.BandwidthFreq);
@@ -80,7 +81,6 @@ namespace CompositeVideoOscilloscope {
                     y += block.dy;
                 }
             }
-            Content.VSync();
             return (frameValues, time / ns);
         }
     }

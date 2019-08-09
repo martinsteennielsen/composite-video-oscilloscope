@@ -5,24 +5,24 @@ namespace CompositeVideoOscilloscope {
 
     public class LayerAxis : IScreenContent {
         readonly Viewport View;
-        readonly double GridPercentage;
+        readonly double NoOfDivisions;
         readonly double dX, dY;
 
-        public LayerAxis(Viewport screen, double gridPercentage) {
-            View = new Viewport(0,0, screen.Width, screen.Height).SetView(0,0,100,100);
-            GridPercentage = gridPercentage;
-            dX = View.Transform(1,0).x - View.Transform(0,0).x;
-            dY = View.Transform(0,1).y - View.Transform(0,0).y;
+        public LayerAxis(Viewport screen, double noOfDivisions) {
+            View = screen.SetView(0,0, noOfDivisions, noOfDivisions);
+            dX = (View.Transform(1,0).x - View.Transform(0,0).x);
+            dY = (View.Transform(0,1).y - View.Transform(0,0).y);
         }
 
-        public int PixelValue(int x, int y) => Value( View.Transform(x,y) );
+        public int PixelValue(int x, int y) =>
+             Value(View.Transform(x,y));
 
+        private int Value((double x, double y) pos) =>
+            (Frac(pos.x)>Frac(pos.x+dX)) || (Frac(pos.y)>Frac(pos.y+dY)) ? 0 :255;
+
+        private double Frac(double x) => 
+            x - Math.Truncate(x);
+        
         public void VSync() { }
-
-        private int  Value( (double x, double y) position) {
-            if (Math.Abs(position.x % GridPercentage) < dX) { return 0; }
-            if (Math.Abs(position.y % GridPercentage) < dY) { return 0; }
-            return 255;
-        }
     }
 }
