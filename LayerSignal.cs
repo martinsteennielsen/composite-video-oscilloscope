@@ -12,8 +12,8 @@ namespace CompositeVideoOscilloscope {
         public LayerSignal(Viewport screen, InputSignal signal, Controls controls) {
             Signal = signal;
             Screen = screen;
-            var divisionsPrQuadrant = controls.NoOfDivisions/2;
-            View = screen.SetView(0, controls.Units.Voltage*divisionsPrQuadrant, controls.Units.Time*controls.NoOfDivisions, -controls.Units.Voltage*divisionsPrQuadrant);
+            var divisionsPrQuadrant = controls.NumberOfDivisions/2;
+            View = screen.SetView(0, controls.Units.Voltage*divisionsPrQuadrant, controls.Units.Time*controls.NumberOfDivisions, -controls.Units.Voltage*divisionsPrQuadrant);
             SigBuf = new double[(int)(2 * screen.Width)];
             dT = View.Transform(0.5, 0).x - View.Transform(0,0).x;
             dV = View.Transform(0, 0.5).y - View.Transform(0,0).y;

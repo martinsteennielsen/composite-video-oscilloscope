@@ -7,8 +7,6 @@ namespace CompositeVideoOscilloscope {
         const int ns = 10000000;
         readonly TimingConstants Timing;
         readonly SignalBlocks[] Frame;
-        readonly IScreenContent Content;
-
         double LastFrameTime = 0;
 
         struct Signal { public int Value; public int Duration; };
@@ -45,15 +43,14 @@ namespace CompositeVideoOscilloscope {
             };
         }
 
-        public CompositeSignal(TimingConstants timing, IScreenContent content) {
-            Content = content;
+        public CompositeSignal(TimingConstants timing) {
             Timing = timing;
             Frame = InterlacedPALFrame(timing);
         }
 
-        public List<int> Generate(Controls controls) {
-            if (controls.Elapsed > LastFrameTime + (2d * Timing.FrameTime)) {
-                var (frame, frameDuration) = GenerateFrame();
+        public List<int> Generate(double elapsed, IScreenContent content) {
+            if (elapsed > LastFrameTime + (2d * Timing.FrameTime)) {
+                var (frame, frameDuration) = GenerateFrame(content);
                 LastFrameTime += frameDuration;
                 return frame;
             } else {
@@ -61,8 +58,8 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        (List<int>, double) GenerateFrame() {
-            Content.VSync();
+        (List<int>, double) GenerateFrame(IScreenContent content) {
+            content.VSync();
             int x = 0, y = 0;
             int time = 0, signalStart = 0;
             int dt = (int)(ns / Timing.BandwidthFreq);
@@ -73,7 +70,7 @@ namespace CompositeVideoOscilloscope {
                     foreach (var signal in block.Signals) {
                         x = 0;
                         for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 255 ? Content.PixelValue(x,y) : signal.Value);
+                            frameValues.Add(signal.Value == 255 ? content.PixelValue(x,y) : signal.Value);
                             x++;
                         }
                         signalStart += signal.Duration;

@@ -15,7 +15,7 @@ namespace CompositeVideoOscilloscope {
             Publisher.Bind(address);
         }
 
-        public void Set(List<int> values) {
+        public void Send(List<int> values) {
             Publisher.SendFrame(values.Select(x => (byte)x).ToArray());
         }
 

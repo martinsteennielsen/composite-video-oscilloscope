@@ -20,7 +20,7 @@ namespace CompositeVideoOscilloscope {
             var horizontalBorderSize = 25;
 
             Screen = new Viewport(0, 0, fullWidth - verticalBorderSize, fullHeight- horizontalBorderSize);
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, noOfDivisions: controls.NoOfDivisions), new LayerSignal(Screen, signal, controls) };
+            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, noOfDivisions: controls.NumberOfDivisions), new LayerSignal(Screen, signal, controls) };
         }
 
         public int PixelValue(int x, int y) {

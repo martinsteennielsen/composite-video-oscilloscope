@@ -4,24 +4,34 @@ using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
     public class Oscilloscope {
-        readonly Output Output;
+        readonly InputSignal InputSignal;
+        readonly CompositeSignal CompositeSignal;
         readonly TimingConstants Timing;
+        readonly Controller Controller;
+        readonly Output Output;
+        readonly Stopwatch StopWatch;
         public Oscilloscope(TimingConstants timing, Output output) {
             Output = output;
             Timing = timing;
+            Controller = new Controller(); 
+            InputSignal = new InputSignal();
+            CompositeSignal = new CompositeSignal(Timing);
+            StopWatch = new Stopwatch();
         }
 
         public async Task Run(CancellationToken canceller) {
-            var controls = new Controls().WithUnits(timePrDivision: 5, voltagePrDivision: 0.5);
-            var content = new ScreenContent(Timing, controls, signal: new InputSignal());
-            var signal = new CompositeSignal(Timing, content);
-            var sw = new Stopwatch();
-            sw.Start();
+            StopWatch.Start();
+            var controls = Controller.StartupControls;
             while (!canceller.IsCancellationRequested) {
-                await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime)).ConfigureAwait(false);
-                controls = controls.ElapseTime(sw.Elapsed.TotalSeconds);
-                Output.Set(signal.Generate(controls));
+                var elapsed = await Relax(StopWatch).ConfigureAwait(false);
+                controls = Controller.Run(controls, elapsed);
+                Output.Send(CompositeSignal.Generate(elapsed, new ScreenContent(Timing, controls, signal: InputSignal)));
             }
+        }
+
+        private async Task<double> Relax(Stopwatch sw) {
+            await Task.Delay((int)(0.5 * 1000 * Timing.FrameTime)).ConfigureAwait(false);
+            return sw.Elapsed.TotalSeconds;
         }
     }
 }
