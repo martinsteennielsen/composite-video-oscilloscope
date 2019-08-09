@@ -11,12 +11,12 @@ namespace CompositeVideoOscilloscope {
         readonly TimingConstants Timing;
         readonly IScreenContent[] Layers;
         readonly Viewport Screen;
-        public ScreenContent(TimingConstants timing, Controls controls, InputSignal signal) {
-            Timing = timing;
+        public ScreenContent(Controls controls, InputSignal signal) {
+            Timing = controls.Timing;
 
-            double fullWidth = timing.BandwidthFreq / timing.HFreq;
-            double fullHeight =  2 * timing.HFreq / timing.VFreq;
-            var verticalBorderSize = (int)(timing.SyncTimes.LineBlankingTime / timing.DotTime);
+            double fullWidth = Timing.BandwidthFreq / Timing.HFreq;
+            double fullHeight =  2 * Timing.HFreq / Timing.VFreq;
+            var verticalBorderSize = (int)(Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
             var horizontalBorderSize = 25;
 
             Screen = new Viewport(0, 0, fullWidth - verticalBorderSize, fullHeight- horizontalBorderSize);

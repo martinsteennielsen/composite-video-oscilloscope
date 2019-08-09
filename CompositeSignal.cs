@@ -5,7 +5,6 @@ namespace CompositeVideoOscilloscope {
 
     public class CompositeSignal {
         const int ns = 10000000;
-        readonly TimingConstants Timing;
         readonly SignalBlocks[] Frame;
         double LastFrameTime = 0;
 
@@ -44,13 +43,12 @@ namespace CompositeVideoOscilloscope {
         }
 
         public CompositeSignal(TimingConstants timing) {
-            Timing = timing;
             Frame = InterlacedPALFrame(timing);
         }
 
-        public List<int> Generate(double elapsed, IScreenContent content) {
-            if (elapsed > LastFrameTime + (2d * Timing.FrameTime)) {
-                var (frame, frameDuration) = GenerateFrame(content);
+        public List<int> Generate(double time, TimingConstants timing, IScreenContent content) {
+            if (time > LastFrameTime + (2d * timing.FrameTime)) {
+                var (frame, frameDuration) = GenerateFrame(timing, content);
                 LastFrameTime += frameDuration;
                 return frame;
             } else {
@@ -58,11 +56,11 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        (List<int>, double) GenerateFrame(IScreenContent content) {
+        (List<int>, double) GenerateFrame(TimingConstants timing, IScreenContent content) {
             content.VSync();
             int x = 0, y = 0;
             int time = 0, signalStart = 0;
-            int dt = (int)(ns / Timing.BandwidthFreq);
+            int dt = (int)(ns / timing.BandwidthFreq);
             var frameValues = new List<int>();
             foreach (var block in Frame) {
                 y = block.sy;
