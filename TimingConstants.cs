@@ -29,10 +29,6 @@ namespace CompositeVideoOscilloscope {
             LineTime = 1.0 / (hFreq);
             SyncTimes = syncTimes;
         }
-    }
-
-    public class PalTiming : TimingConstants {
-        public PalTiming() : base(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal) {
-        }
+        public static TimingConstants Pal => new TimingConstants(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
     }
 }

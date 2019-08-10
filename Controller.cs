@@ -11,7 +11,7 @@ namespace CompositeVideoOscilloscope {
             new Controls()
                 .WithUnits(timePrDivision: 5, voltagePrDivision: 0.5)
                 .WithDivisions(8)
-                .WithTiming(new PalTiming());
+                .WithTiming(TimingConstants.Pal);
 
         public Controller() {
             Stopwatch = new Stopwatch();
