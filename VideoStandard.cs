@@ -1,17 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace CompositeVideoOscilloscope {
 
-    public class CompositeSignal {
+
+
+    public struct SyncConstants {
+        public double LineBlankingTime;
+        public double LineSyncTime;
+        public double FrontPorchTime;
+        public double EquPulseTime;
+        public double VerticalSerrationTime;
+        public int BlackLevel;
+        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3) };
+    }
+
+    public class Timing {
+        public readonly double HFreq;
+        public readonly double VFreq;
+        public readonly double BandwidthFreq;
+        public readonly double DotTime;
+        public readonly double FrameTime;
+        public readonly double LineTime;
+        public readonly SyncConstants SyncTimes;
+        public Timing(double hFreq, double vFreq, double bandwidthFreq, SyncConstants syncTimes) {
+            BandwidthFreq = bandwidthFreq;
+            VFreq = vFreq;
+            HFreq = hFreq;
+            DotTime = 1d / (bandwidthFreq);
+            FrameTime = 1.0 / vFreq;
+            LineTime = 1.0 / (hFreq);
+            SyncTimes = syncTimes;
+        }
+
+        public static Timing Pal => new Timing(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
+
+    }
+
+    public struct VideoStandard {
         const int ns = 10000000;
-        readonly SignalBlocks[] Frame;
-        double LastFrameTime = 0;
+        public readonly SignalBlocks[] Blocks; 
+        public readonly Timing Timing;
 
-        struct Signal { public int Value; public int Duration; };
-        struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
+        private VideoStandard(SignalBlocks[] signals, Timing timing) {
+            Blocks=signals;
+            Timing = timing;
+        }
 
-        static SignalBlocks[] InterlacedPALFrame(TimingConstants timing) {
+        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.Pal), timing: Timing.Pal);
+
+
+        public struct Signal { public int Value; public int Duration; };
+        public struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
+        
+
+        private static SignalBlocks[] InterlacedFrame(Timing timing) {
             int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
             var synl = new[] {
@@ -42,40 +82,5 @@ namespace CompositeVideoOscilloscope {
             };
         }
 
-        public CompositeSignal(TimingConstants timing) {
-            Frame = InterlacedPALFrame(timing);
-        }
-
-        public List<int> Generate(double time, TimingConstants timing, IScreenContent content) {
-            if (time > LastFrameTime + (2d * timing.FrameTime)) {
-                var (frame, frameDuration) = GenerateFrame(timing, content);
-                LastFrameTime += frameDuration;
-                return frame;
-            } else {
-                return new List<int>();
-            }
-        }
-
-        (List<int>, double) GenerateFrame(TimingConstants timing, IScreenContent content) {
-            int x = 0, y = 0;
-            int time = 0, signalStart = 0;
-            int dt = (int)(ns / timing.BandwidthFreq);
-            var frameValues = new List<int>();
-            foreach (var block in Frame) {
-                y = block.sy;
-                for (int i = 0; i < block.Count; i++) {
-                    foreach (var signal in block.Signals) {
-                        x = 0;
-                        for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 255 ? content.PixelValue(x,y) : signal.Value);
-                            x++;
-                        }
-                        signalStart += signal.Duration;
-                    }
-                    y += block.dy;
-                }
-            }
-            return (frameValues, time / ns);
-        }
     }
 }

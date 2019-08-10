@@ -15,10 +15,10 @@ namespace CompositeVideoOscilloscope {
 
         public async Task Run(CancellationToken canceller) {
             var controls = Controller.StartupControls;
-            var compositeSignal = new CompositeSignal(controls.Timing);
+            var videoSignal = new VideoSignal();
             while (!canceller.IsCancellationRequested) {
                 controls = await Controller.Run(controls).ConfigureAwait(false);
-                Output.Send(compositeSignal.Generate(controls.CurrentTime, controls.Timing, new ScreenContent(controls, signal: InputSignal)));
+                Output.Send(videoSignal.Generate(controls.CurrentTime, controls.VideoStandard, new ScreenContent(controls, signal: InputSignal)));
             }
         }
     }

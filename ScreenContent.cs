@@ -7,11 +7,11 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class ScreenContent : IScreenContent {
-        readonly TimingConstants Timing;
+        readonly Timing Timing;
         readonly IScreenContent[] Layers;
         readonly Viewport Screen;
         public ScreenContent(Controls controls, InputSignal signal) {
-            Timing = controls.Timing;
+            Timing = controls.VideoStandard.Timing;
 
             double fullWidth = Timing.BandwidthFreq / Timing.HFreq;
             double fullHeight =  2 * Timing.HFreq / Timing.VFreq;

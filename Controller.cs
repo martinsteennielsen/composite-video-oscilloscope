@@ -11,7 +11,7 @@ namespace CompositeVideoOscilloscope {
             new Controls()
                 .WithUnits(timePrDivision: 5, voltagePrDivision: 0.5)
                 .WithDivisions(8)
-                .WithTiming(TimingConstants.Pal);
+                .WithVideoStandard(VideoStandard.Pal5MhzInterlaced);
 
         public Controller() {
             Stopwatch = new Stopwatch();
@@ -19,7 +19,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task<Controls> Run(Controls controls) {
-            await Task.Delay((int)(0.5 * 1000 * controls.Timing.FrameTime)).ConfigureAwait(false);
+            await Task.Delay((int)(0.5 * 1000 * controls.VideoStandard.Timing.FrameTime)).ConfigureAwait(false);
             return controls.WithTime(Stopwatch.Elapsed.TotalSeconds);
         }
     }
