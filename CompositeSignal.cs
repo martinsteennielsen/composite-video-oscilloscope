@@ -57,7 +57,6 @@ namespace CompositeVideoOscilloscope {
         }
 
         (List<int>, double) GenerateFrame(TimingConstants timing, IScreenContent content) {
-            content.VSync();
             int x = 0, y = 0;
             int time = 0, signalStart = 0;
             int dt = (int)(ns / timing.BandwidthFreq);

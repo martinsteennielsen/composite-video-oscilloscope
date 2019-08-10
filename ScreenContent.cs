@@ -4,7 +4,6 @@ namespace CompositeVideoOscilloscope {
 
     public interface IScreenContent {
         int PixelValue(int x, int y);
-        void VSync();
     }
 
     public class ScreenContent : IScreenContent {
@@ -20,7 +19,12 @@ namespace CompositeVideoOscilloscope {
             var horizontalBorderSize = 25;
 
             Screen = new Viewport(0, 0, fullWidth - verticalBorderSize, fullHeight- horizontalBorderSize);
-            Layers = new IScreenContent[] { new LayerBackground(), new LayerAxis(Screen, noOfDivisions: controls.NumberOfDivisions), new LayerSignal(Screen, signal, controls) };
+
+            Layers = new IScreenContent[] { 
+                new LayerBackground(), 
+                new LayerAxis(Screen, controls.NumberOfDivisions),
+                new LayerSignal(Screen, signal, controls)
+            };
         }
 
         public int PixelValue(int x, int y) {
@@ -35,12 +39,6 @@ namespace CompositeVideoOscilloscope {
             currentValue /= 255;
             currentValue += Timing.SyncTimes.BlackLevel;
             return currentValue > 255 ? 255 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
-        }
-
-        public void VSync() {
-            foreach (var layer in Layers) {
-                layer.VSync();
-            }
         }
     }
 }

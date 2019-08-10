@@ -1,11 +1,9 @@
 ﻿using System;
 
-
 namespace CompositeVideoOscilloscope {
 
     public class LayerAxis : IScreenContent {
         readonly Viewport View;
-        readonly double NoOfDivisions;
         readonly double dX, dY;
 
         public LayerAxis(Viewport screen, double noOfDivisions) {
@@ -22,7 +20,5 @@ namespace CompositeVideoOscilloscope {
 
         private double Frac(double x) => 
             x - Math.Truncate(x);
-        
-        public void VSync() { }
     }
 }
