@@ -7,18 +7,15 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class ScreenContent : IScreenContent {
-        readonly Timing Timing;
+        readonly int BlackLevel;
         readonly IScreenContent[] Layers;
         readonly Viewport Screen;
+        
         public ScreenContent(Controls controls, InputSignal signal) {
-            Timing = controls.VideoStandard.Timing;
+            var standard = controls.VideoStandard; 
+            BlackLevel = standard.BlackLevel;
 
-            double fullWidth = Timing.BandwidthFreq / Timing.HFreq;
-            double fullHeight =  2 * Timing.HFreq / Timing.VFreq;
-            var verticalBorderSize = (int)(Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
-            var horizontalBorderSize = 25;
-
-            Screen = new Viewport(0, 0, fullWidth - verticalBorderSize, fullHeight- horizontalBorderSize);
+            Screen = new Viewport(0, 0, standard.VisibleWidth, standard.VisibleHeight);
 
             Layers = new IScreenContent[] { 
                 new LayerBackground(), 
@@ -35,10 +32,10 @@ namespace CompositeVideoOscilloscope {
                 currentValue *= layer.PixelValue(x, y);
                 currentValue /= 255;
             }
-            currentValue *= (255 - Timing.SyncTimes.BlackLevel);
+            currentValue *= (255 - BlackLevel);
             currentValue /= 255;
-            currentValue += Timing.SyncTimes.BlackLevel;
-            return currentValue > 255 ? 255 : Math.Max(Timing.SyncTimes.BlackLevel, currentValue);
+            currentValue += BlackLevel;
+            return currentValue > 255 ? 255 : Math.Max(BlackLevel, currentValue);
         }
     }
 }

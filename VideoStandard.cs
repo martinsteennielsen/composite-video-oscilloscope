@@ -46,6 +46,10 @@ namespace CompositeVideoOscilloscope {
 
         public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.Pal), timing: Timing.Pal);
 
+        public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
+        public double VisibleHeight =>  2 * Timing.HFreq / Timing.VFreq - 25;
+
+        public int BlackLevel => Timing.SyncTimes.BlackLevel;
 
         public struct Signal { public int Value; public int Duration; };
         public struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
