@@ -17,26 +17,47 @@ namespace CompositeVideoOscilloscope {
             var (half, origo) = (View.Transform(0.5, 0.5),  View.Transform(0,0));
             (dT,dV) = (half.x-origo.x, half.y-origo.y);
             (d2T, d2V) = (2*dT, 2*dV);
-            (SignalMinX, SignalMaxX) = ExamineSignal();
+            (SignalMinX, SignalMaxX) = ExamineSignal(controls);
         }
 
         private Viewport SetView(Viewport screen, Controls controls) {
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
-            return screen.SetView(0, controls.Units.Voltage*divisionsPrQuadrant, controls.Units.Time*controls.NumberOfDivisions, -controls.Units.Voltage*divisionsPrQuadrant);
+            return screen.SetView(
+                controls.Position.Time,
+                controls.Position.Voltage + controls.Units.Voltage*divisionsPrQuadrant, 
+                controls.Position.Time + controls.Units.Time*controls.NumberOfDivisions,
+                controls.Position.Voltage - controls.Units.Voltage*divisionsPrQuadrant);
         }
 
-        private (int,int) ExamineSignal() {
-            var min=int.MaxValue;
-            var max=int.MinValue;
-            double time = View.Left;
-            for (int pos=0; pos<SigBuf.Length; pos++) {
-                if (Signal.TryGet(time: time, value: out SigBuf[pos])) {
-                    if (pos>max) { max =pos;}
-                    if (pos<min) { min =pos;}
+        private (int,int) ExamineSignal(Controls controls)
+        {
+            var min = int.MaxValue;
+            var max = int.MinValue;
+            double time = View.Left + controls.Offset.Time + GetTriggerTime(controls);
+            for (int pos = 0; pos < SigBuf.Length; pos++)
+            {
+                if (Signal.TryGet(time: time, value: out SigBuf[pos]))
+                {
+                    SigBuf[pos] += controls.Offset.Voltage;
+                    if (pos > max) { max = pos; }
+                    if (pos < min) { min = pos; }
                 }
                 time += dT;
             }
-            return (Math.Max(2, min), Math.Min(SigBuf.Length-2, max));
+            return (Math.Max(2, min), Math.Min(SigBuf.Length - 2, max));
+        }
+
+        private double GetTriggerTime(Controls controls) {
+            double triggerTime = 0; // signal.StartTime
+            for (int pos = 0; pos < SigBuf.Length; pos++) {
+                double value;
+                if (Signal.TryGet(time: triggerTime, value: out value) && value > controls.TriggerVoltage){
+                    return triggerTime;
+                } else {
+                    triggerTime += dT;
+                }
+            }
+            return 0; // signal.StartTime
         }
 
         public int PixelValue(int x, int y) => Value((x-(int)Screen.Left)*2, y*2);
