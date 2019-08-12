@@ -8,11 +8,13 @@ namespace CompositeVideoOscilloscope {
         private readonly Stopwatch Stopwatch;
 
         public readonly static Controls StartupControls = 
-            new Controls()
-                .WithUnits(timePrDivision: 5, voltagePrDivision: 0.5)
-                .WithDivisions(8)
-                .WithVideoStandard(VideoStandard.Pal5MhzInterlaced)
-                .WithTriggerLevel(0.7);
+            new Controls() {
+                 NumberOfDivisions = 10,
+                 ScreenPosition =  (0.1,0.1,.9,.9),
+                 Units =  (5, 0.5),
+                 VideoStandard = VideoStandard.Pal5MhzInterlaced,
+                 TriggerVoltage = 0.7
+            };
 
         public Controller() {
             Stopwatch = new Stopwatch();
@@ -21,7 +23,10 @@ namespace CompositeVideoOscilloscope {
 
         public async Task<Controls> Run(Controls controls) {
             await Task.Delay((int)(0.5 * 1000 * controls.VideoStandard.Timing.FrameTime)).ConfigureAwait(false);
-            return controls.WithTime(Stopwatch.Elapsed.TotalSeconds);
+            var currentTime = Stopwatch.Elapsed.TotalSeconds;
+            controls.ElapsedTime = currentTime - controls.CurrentTime;
+            controls.CurrentTime = currentTime;
+            return controls;
         }
     }
 }
