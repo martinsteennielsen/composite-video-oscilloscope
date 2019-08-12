@@ -2,7 +2,7 @@ using System;
 
 namespace CompositeVideoOscilloscope {
 
-    public struct Controls {
+    public class Controls {
         public double NumberOfDivisions;
         public double CurrentTime, ElapsedTime;
         public (double Time, double Voltage) Offset;
