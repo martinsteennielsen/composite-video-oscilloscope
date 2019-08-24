@@ -4,7 +4,7 @@ namespace CompositeVideoOscilloscope {
 
     public class InputSignal {
         private readonly double[] Buffer;
-        private readonly double StartTime, EndTime, SampleTime;
+        public readonly double StartTime, EndTime, SampleTime;
         public InputSignal() {
             Buffer = new double[1000];
             StartTime=0; EndTime=40; SampleTime = (EndTime-StartTime)/Buffer.Length;
@@ -13,6 +13,14 @@ namespace CompositeVideoOscilloscope {
                 double time = StartTime + idx*SampleTime;
                 Buffer[idx] = Generate(time); 
             }
+        }
+        public bool TryGet(double time, double dt, out double[] value) {
+            value=new double[5];
+            return TryGet(time-2*dt, out value[0]) &&
+                TryGet(time-dt, out value[1]) &&
+                TryGet(time, out value[2]) &&
+                TryGet(time+dt, out value[3]) &&
+                TryGet(time+2*dt, out value[4]);
         }
 
         public bool TryGet(double time, out double value) {

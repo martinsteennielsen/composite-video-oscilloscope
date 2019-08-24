@@ -9,7 +9,8 @@ namespace CompositeVideoOscilloscope {
         public double EquPulseTime;
         public double VerticalSerrationTime;
         public int BlackLevel;
-        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3) };
+        public int BlankLines;
+        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3), BlankLines = 38 };
     }
 
     public class Timing {
@@ -47,7 +48,7 @@ namespace CompositeVideoOscilloscope {
         public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.Pal), timing: Timing.Pal);
 
         public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
-        public double VisibleHeight =>  2 * Timing.HFreq / Timing.VFreq - 25;
+        public double VisibleHeight =>  2 * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
 
         public int BlackLevel => Timing.SyncTimes.BlackLevel;
 

@@ -1,26 +1,33 @@
 ﻿namespace CompositeVideoOscilloscope {
 
-    public struct Viewport {
-        public readonly double[] Matrix;
-        public readonly double Top, Left, Bottom, Right, Width, Height;
+    public class Viewport {
+        readonly IClip Clip;
+        readonly double[] Matrix;
+        public readonly double Top, Left, Bottom, Right, Width, Height, CenterX, CenterY;
         
-        public Viewport(double left, double top, double right, double bottom, double[] matrix = null) {
+        public Viewport(double left, double top, double right, double bottom, IClip clip = null, double[] matrix = null) {
             Top = top; Left=left; Bottom = bottom; Right=right;
             Width = Right - Left; Height = Bottom-Top;
+            CenterX = Left + Width/2;
+            CenterY = Top + Height/2;
             Matrix = matrix ?? Scale(1,1); 
+            Clip = clip ?? new ClipBox(left, top, right, bottom);
         }
 
         public Viewport SetView(double viewLeft, double viewTop, double viewRight, double viewBottom) {
             double width = viewRight - viewLeft, height = viewBottom - viewTop;
             var mtx = Multiply(Translate(viewLeft, viewTop), Multiply(Scale(width / Width, height / Height), Translate(-Left, -Top)));
-            return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Multiply(mtx,Matrix));
+            return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Clip, Multiply(mtx,Matrix));
         }
 
         public bool Visible(double x, double y) =>
-            y>=Top && y<=Bottom && x >= Left && x <= Right;
+            Clip.Visible(x,y);
             
         public (double x, double y) Transform(double x, double y) =>
             ( x*Matrix[0] + y * Matrix[1] + Matrix[2], x * Matrix[3] + y*Matrix[4] + Matrix[5]  );
+
+        public (double x, double y) Transform((double x , double y) pos)  =>
+            Transform(pos.x, pos.y);
 
         static double[] Scale(double sx, double sy) => 
             new double[] { sx, 0, 0,  0, sy, 0,  0, 0, 1 };

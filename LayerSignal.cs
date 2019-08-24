@@ -3,76 +3,42 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class LayerSignal : IScreenContent {
+
         private readonly Viewport View, Screen;
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
-        private readonly double[] SigBuf;
-        private readonly int SignalMinX, SignalMaxX;
-
+        
         public LayerSignal(Viewport screen, InputSignal signal, Controls controls) {
+            Screen = screen.SetView(0,0,2*screen.Width, 2*screen.Height);
             Signal = signal;
-            Screen = screen;
-            SigBuf = new double[(int)(2 * screen.Width)];
-            View = SetView(screen, controls);
-            var (half, origo) = (View.Transform(0.5, 0.5),  View.Transform(0,0));
-            (dT,dV) = (half.x-origo.x, half.y-origo.y);
-            (d2T, d2V) = (2*dT, 2*dV);
-            (SignalMinX, SignalMaxX) = ExamineSignal(controls);
-        }
 
-        private Viewport SetView(Viewport screen, Controls controls) {
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
-            return screen.SetView(
+            
+            View = new Viewport(0,0, Screen.Right, Screen.Bottom).SetView(
                 controls.Position.Time,
                 controls.Position.Voltage + controls.Units.Voltage*divisionsPrQuadrant, 
                 controls.Position.Time + controls.Units.Time*controls.NumberOfDivisions,
                 controls.Position.Voltage - controls.Units.Voltage*divisionsPrQuadrant);
+
+            var (half, origo) = (View.Transform(1, 1),  View.Transform(0,0));
+            (dT,dV) = (half.x-origo.x, half.y-origo.y);
+            (d2T, d2V) = (2*dT, 2*dV);
         }
 
-        private (int,int) ExamineSignal(Controls controls)
-        {
-            var min = int.MaxValue;
-            var max = int.MinValue;
-            double time = View.Left + controls.Offset.Time + GetTriggerTime(controls);
-            for (int pos = 0; pos < SigBuf.Length; pos++)
-            {
-                if (Signal.TryGet(time: time, value: out SigBuf[pos]))
-                {
-                    SigBuf[pos] += controls.Offset.Voltage;
-                    if (pos > max) { max = pos; }
-                    if (pos < min) { min = pos; }
-                }
-                time += dT;
-            }
-            return (Math.Max(2, min), Math.Min(SigBuf.Length - 2, max));
-        }
+        public int PixelValue(int x, int y) =>
+            PixelValue(View.Transform(Screen.Transform(x,y)));
 
-        private double GetTriggerTime(Controls controls) {
-            double triggerTime = 0; // signal.StartTime
-            for (int pos = 0; pos < SigBuf.Length; pos++) {
-                double value;
-                if (Signal.TryGet(time: triggerTime, value: out value) && value > controls.TriggerVoltage){
-                    return triggerTime;
-                } else {
-                    triggerTime += dT;
-                }
-            }
-            return 0; // signal.StartTime
-        }
+        private int PixelValue((double t, double v) position) {
+            if (!Signal.TryGet(position.t, dT, out var sigbuf)) { return 0xff; }
 
-        public int PixelValue(int x, int y) => Value((x-(int)Screen.Left)*2, y*2);
-
-        private int Value(int x, int y) {
-            if (x <= SignalMinX  || x >= SignalMaxX ) { return 255; }
-
-            double v = View.Transform(0, y/2).y;
+            double v = position.v;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
-            bool dr = SigBuf[x+1] - v > 0, dd = SigBuf[x] - vd > 0, du = SigBuf[x] - vu > 0, dl = SigBuf[x-1] - v > 0;
+            bool dr = sigbuf[3] - v > 0, dd = sigbuf[2] - vd > 0, du = sigbuf[2] - vu > 0, dl = sigbuf[1] - v > 0;
 
-            int r = Pixel(dl, SigBuf[x-1] - vuu > 0, SigBuf[x-2] - vu > 0, du);
-            r += Pixel(dr, SigBuf[x+1] - vuu > 0, du, SigBuf[x+2] - vu > 0);
-            r += Pixel(SigBuf[x-1] - vdd > 0, dl, SigBuf[x-2] - vd > 0, dd);
-            r += Pixel(SigBuf[x+1] - vdd > 0, dr, dd, SigBuf[x+2] - vd > 0);
+            int r = Pixel(dl, sigbuf[1] - vuu > 0, sigbuf[0] - vu > 0, du);
+            r += Pixel(dr, sigbuf[3] - vuu > 0, du, sigbuf[4] - vu > 0);
+            r += Pixel(sigbuf[1] - vdd > 0, dl, sigbuf[0] - vd > 0, dd);
+            r += Pixel(sigbuf[3] - vdd > 0, dr, dd, sigbuf[4] - vd > 0);
             r += Pixel(dd, du, dl, dr)  << 2;
             return r << 5;
         }
