@@ -10,9 +10,9 @@ namespace CompositeVideoOscilloscope {
             new Controls() {
                  NumberOfDivisions = 10,
                  ScreenPosition =  (0,0,1,1),
-                 Units =  (.004, 0.5),
+                 Units =  (.005, 0.5),
                  VideoStandard = VideoStandard.Pal5MhzInterlaced,
-                 TriggerVoltage = 0.1,
+                 TriggerVoltage = 0.6,
                  TriggerEdge = 0
             };
 

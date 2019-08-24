@@ -9,8 +9,8 @@ namespace CompositeVideoOscilloscope {
         
         public double TriggerOffsetTime = 0;
         public InputSignal() {
-            Buffer = new double[500];
-            SampleTime = .05/Buffer.Length;
+            Buffer = new double[1000];
+            SampleTime = .1/Buffer.Length;
         }
 
         public bool TryGet(double time, double dt, out double[] value) {
@@ -42,37 +42,28 @@ namespace CompositeVideoOscilloscope {
             double time = StartTime;
             bool triggered = false;
             for (int idx=0; idx<Buffer.Length; idx++) {
-                double currentValue = Generate(time);
+                double currentVoltage = Generate(time);
                 if (!triggered && idx > 0) {
-                    double lastValue = Buffer[idx-1];
-                    bool currentTrigger = currentValue > controls.TriggerVoltage;
-                    bool lastTrigger = lastValue > controls.TriggerVoltage;
+                    double lastVoltage = Buffer[idx-1];
+                    bool currentTrigger = currentVoltage > controls.TriggerVoltage;
+                    bool lastTrigger = lastVoltage > controls.TriggerVoltage;
 
                     if (currentTrigger && !lastTrigger 
-                        && currentValue - lastValue > controls.TriggerEdge ){
-                        TriggerOffsetTime = time - StartTime;
+                        && currentVoltage - lastVoltage > controls.TriggerEdge ){
+                        double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, controls.TriggerVoltage);
+                        TriggerOffsetTime = interpolatedTime + time - (SampleTime + StartTime);
                         triggered=true;
                     }
                 }
-
-                Buffer[idx] = currentValue;
+                Buffer[idx] = currentVoltage;
                 time += SampleTime;
             }
             EndTime=time;
         }
 
         private double InterpolateTime(double v0, double v1, double vt) =>
-            SampleTime * (v0 + v1) / (vt - v0);
+            SampleTime * (vt - v0) / (v1 + v0);
 
-        // private double Lerp(float v0, float v1, float t) =>
-            // a= (1-t) v0 + t v1;
-            // a = v0 -tv0 + tv1
-            // a/t = v0/t - v0 - v1
-            // a/t - v0/t = - v0 -v1   
-            // (a-v0)t = -v0 - v1
-            // t= (-v0 -v1)/(a-v0)
-            // t = v0+v1/(a-v0)
-
-        private double Generate(double t)=> Math.Sin(t*1000) - 0.5 * Math.Sin(t * 0.5);
+        private double Generate(double t)=> Math.Sin(t*500) - 0.5 * Math.Sin(t * 0.5);
     }
 }
