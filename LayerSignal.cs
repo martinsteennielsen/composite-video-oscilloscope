@@ -15,9 +15,9 @@ namespace CompositeVideoOscilloscope {
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
             
             View = new Viewport(0,0, Screen.Right, Screen.Bottom).SetView(
-                controls.Position.Time,
+                controls.CurrentTime + controls.Position.Time + signal.TriggerOffsetTime,
                 controls.Position.Voltage + controls.Units.Voltage*divisionsPrQuadrant, 
-                controls.Position.Time + controls.Units.Time*controls.NumberOfDivisions,
+                controls.CurrentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time*controls.NumberOfDivisions,
                 controls.Position.Voltage - controls.Units.Voltage*divisionsPrQuadrant);
 
             var (half, origo) = (View.Transform(1, 1),  View.Transform(0,0));

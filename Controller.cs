@@ -9,10 +9,11 @@ namespace CompositeVideoOscilloscope {
         private readonly Controls Controls = 
             new Controls() {
                  NumberOfDivisions = 10,
-                 ScreenPosition =  (0.1,0.1,.9,.9),
-                 Units =  (5, 0.5),
+                 ScreenPosition =  (0,0,1,1),
+                 Units =  (.004, 0.5),
                  VideoStandard = VideoStandard.Pal5MhzInterlaced,
-                 TriggerVoltage = 0.7
+                 TriggerVoltage = 0.1,
+                 TriggerEdge = 0
             };
 
         public Controller() {
