@@ -17,7 +17,7 @@ namespace CompositeVideoOscilloscope {
             var size = standard.VisibleWidth;
             var (l,t,r,b) = controls.ScreenPosition;
 
-            Screen = new Viewport(size*l, size*t, standard.VisibleWidth*r, standard.VisibleHeight*b);
+            Screen = new Viewport(standard.VisibleWidth*l, standard.VisibleHeight*t, standard.VisibleWidth*r, standard.VisibleHeight*b);
 
             Layers = new IScreenContent[] { 
                 new LayerBackground(), 
@@ -27,7 +27,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         public int PixelValue(int x, int y) {
-            if (!Screen.Visible(x,y)) { return BlackLevel; }
+            if (!Screen.Visible(x,y)) { return BlackLevel+10; }
 
             int currentValue = 255;
             foreach (var layer in Layers) {
