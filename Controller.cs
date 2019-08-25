@@ -12,17 +12,17 @@ namespace CompositeVideoOscilloscope {
                  NumberOfDivisions = 10,
                  ScreenPosition =  (0,0,1,1),
                  Units =  (.005, 0.5),
-                 VideoStandard = VideoStandard.Pal5MhzInterlaced,
+                 VideoStandard = VideoStandard.Pal5MhzProgessiv,
                  TriggerVoltage = 0.6,
                  TriggerEdge = 0
             };
 
         public Controller() {
             Physics = new Movements();
-            Physics.Add(target: 0.2, position: ()=>Controls.ScreenPosition.left, move: d => Controls.ScreenPosition.left += d );
-            Physics.Add(target: 0.8, position: ()=>Controls.ScreenPosition.right, move: d => Controls.ScreenPosition.right += d );
-            Physics.Add(target: 0.2, position: ()=>Controls.ScreenPosition.top, move: d => Controls.ScreenPosition.top += d );
-            Physics.Add(target: 0.8, position: ()=>Controls.ScreenPosition.bottom, move: d => Controls.ScreenPosition.bottom += d );
+            //Physics.Add(target: 0.2, position: ()=>Controls.ScreenPosition.left, move: d => Controls.ScreenPosition.left += d );
+            //Physics.Add(target: 0.8, position: ()=>Controls.ScreenPosition.right, move: d => Controls.ScreenPosition.right += d );
+            //Physics.Add(target: 0.2, position: ()=>Controls.ScreenPosition.top, move: d => Controls.ScreenPosition.top += d );
+            //Physics.Add(target: 0.8, position: ()=>Controls.ScreenPosition.bottom, move: d => Controls.ScreenPosition.bottom += d );
             Stopwatch = new Stopwatch();
             Stopwatch.Start();
         }

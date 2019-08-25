@@ -1,7 +1,5 @@
 namespace CompositeVideoOscilloscope {
 
-
-
     public struct SyncConstants {
         public double LineBlankingTime;
         public double LineSyncTime;
@@ -31,7 +29,8 @@ namespace CompositeVideoOscilloscope {
             SyncTimes = syncTimes;
         }
 
-        public static Timing Pal => new Timing(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
+        public static Timing iPal => new Timing(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
+        public static Timing pPal => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
 
     }
 
@@ -39,16 +38,18 @@ namespace CompositeVideoOscilloscope {
         const int ns = 10000000;
         public readonly SignalBlocks[] Blocks; 
         public readonly Timing Timing;
-
-        private VideoStandard(SignalBlocks[] signals, Timing timing) {
+        public readonly int InterlacedScaler;
+        private VideoStandard(SignalBlocks[] signals, Timing timing, bool interlaced) {
             Blocks=signals;
             Timing = timing;
+            InterlacedScaler = interlaced ? 2 : 1;
         }
 
-        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.Pal), timing: Timing.Pal);
+        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
+        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(signals: ProgressiveFrame(Timing.iPal), timing: Timing.pPal, interlaced: false);
 
         public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
-        public double VisibleHeight =>  2 * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
+        public double VisibleHeight => InterlacedScaler * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
 
         public int BlackLevel => Timing.SyncTimes.BlackLevel;
 
@@ -87,5 +88,33 @@ namespace CompositeVideoOscilloscope {
             };
         }
 
+        private static SignalBlocks[] ProgressiveFrame(Timing timing) {
+            int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
+
+            var synl = new[] {
+                new Signal { Value = sync , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.LineSyncTime )} };
+            var syns = new[] {
+                new Signal { Value = dark , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new Signal { Value = sync,  Duration = (int)(ns * timing.SyncTimes.EquPulseTime) } };
+            var line = new[] {
+                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (int)(ns * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sign , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.FrontPorchTime) },
+                };
+            var blank = new[] {
+                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                };
+
+            return new[] {
+                new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
+                new SignalBlocks { Count = 12 , Signals = blank },
+                new SignalBlocks { Count = 593, Signals = line, dy = 1, sy = 0 },
+                new SignalBlocks { Count = 12 , Signals = blank },
+                new SignalBlocks { Count = 6  , Signals = syns },
+            };
+        }
     }
 }

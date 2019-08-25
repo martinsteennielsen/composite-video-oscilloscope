@@ -38,7 +38,7 @@ namespace CompositeVideoOscilloscope {
                 Move(Target - current);
                 Velocity = -Velocity;
             }
-            IsFinished = current == Target && Math.Abs(Velocity)<0.1;
+            IsFinished = current == Target && Math.Abs(Velocity)<0.01;
         }
     }
 }
