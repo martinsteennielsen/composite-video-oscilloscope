@@ -6,9 +6,10 @@ namespace CompositeVideoOscilloscope {
     public class Movements {
         readonly List<Movement> Moves = new List<Movement>();
 
-        public void Add(double target, Func<double> position, Action<double> move) {
-            double acceleration =  position() > target ? -0.5 : 0.5;
-            Moves.Add(new Movement() { Target = target, Position=position, Move=move, Accelaration = acceleration});
+        public void Add(double target, double velocity, double acceleration, Func<double> position, Action<double> move) {
+            acceleration = position() > target ? -acceleration : acceleration;
+            velocity = position() > target ? -velocity : velocity;
+            Moves.Add(new Movement() { Target = target, Position=position, Move=move, Accelaration = acceleration, Velocity = velocity});
         }
 
         public void Run(Controls controls, double elpasedTime) {
@@ -22,7 +23,7 @@ namespace CompositeVideoOscilloscope {
          public double  Target;
          public Func<double> Position;
          public Action<double> Move;
-         public double Velocity = 0;
+         public double Velocity;
          public bool IsFinished;
 
         public void Run(double elpasedTime) {

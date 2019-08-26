@@ -13,15 +13,6 @@ namespace CompositeVideoOscilloscope {
             SampleTime = .1/Buffer.Length;
         }
 
-        public bool TryGet(double time, double dt, out double[] value) {
-            value=new double[5];
-            return TryGet(time-2*dt, out value[0]) &&
-                TryGet(time-dt, out value[1]) &&
-                TryGet(time, out value[2]) &&
-                TryGet(time+dt, out value[3]) &&
-                TryGet(time+2*dt, out value[4]);
-        }
-
         public bool TryGet(double time, out double value) {
             if (time < StartTime) {
                 value = 0;
