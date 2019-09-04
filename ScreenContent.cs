@@ -17,11 +17,11 @@ namespace CompositeVideoOscilloscope {
             var size = standard.VisibleWidth;
             var (l,t,r,b) = controls.ScreenPosition;
 
-            Screen = new Viewport(standard.VisibleWidth*l, standard.VisibleHeight*t, standard.VisibleWidth*r, standard.VisibleHeight*b);
+            Screen = new Viewport(standard.VisibleWidth * l, standard.VisibleHeight * t, standard.VisibleWidth * r, standard.VisibleHeight * b);
 
             Layers = new IScreenContent[] { 
                 new LayerBackground(), 
-                new LayerAxis(Screen, controls.NumberOfDivisions),
+                new LayerAxis(Screen, controls.NumberOfDivisions, controls.Angle),
                 new LayerSignal(Screen, signal, controls)
             };
         }

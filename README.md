@@ -1,7 +1,7 @@
 # Composite-video-oscilloscope
 n-channel oscilloscope with composite video output for display. 
 
-The purpose of this project is merely to serve a development demonstration and to make use of the nice development tools on a PC.
+The purpose of this project is merely to serve as a development demonstration and to make use of the nice development tools on PC's.
 
 For the same purpose a simple composite video monitor simulation has also  been developed. See https://github.com/martinsteennielsen/composite-video-monitor
 

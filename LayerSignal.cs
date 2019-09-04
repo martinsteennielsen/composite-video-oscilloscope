@@ -12,15 +12,14 @@ namespace CompositeVideoOscilloscope {
             Signal = signal;
 
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
-            
+
             View = screen.SetView(
                 controls.CurrentTime + controls.Position.Time + signal.TriggerOffsetTime,
-                controls.Position.Voltage + controls.Units.Voltage*divisionsPrQuadrant, 
-                controls.CurrentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time*controls.NumberOfDivisions,
-                controls.Position.Voltage - controls.Units.Voltage*divisionsPrQuadrant);
+                controls.Position.Voltage + controls.Units.Voltage * divisionsPrQuadrant,
+                controls.CurrentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
+                controls.Position.Voltage - controls.Units.Voltage * divisionsPrQuadrant, controls.Angle);
 
-            var (half, origo) = (View.Transform(0.5, 0.5),  View.Transform(0,0));
-            (dT,dV) = (half.x-origo.x, half.y-origo.y);
+            (dT,dV) = (View.Width / (screen.Width*2), View.Height / (screen.Height*2));
             (d2T, d2V) = (2*dT, 2*dV);
         }
 

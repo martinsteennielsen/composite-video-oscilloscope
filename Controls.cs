@@ -12,5 +12,6 @@ namespace CompositeVideoOscilloscope {
         public (double Time, double Voltage) Position;
         public double TriggerVoltage;
         public double TriggerEdge;
+        public double Angle;
     }
 }

@@ -6,10 +6,10 @@ namespace CompositeVideoOscilloscope {
         readonly Viewport View;
         readonly double dX, dY;
 
-        public LayerAxis(Viewport screen, double noOfDivisions) {
-            View = screen.SetView(0,0, noOfDivisions, noOfDivisions);
-            dX = (View.Transform(1,0).x - View.Transform(0,0).x);
-            dY = (View.Transform(0,1).y - View.Transform(0,0).y);
+        public LayerAxis(Viewport screen, double noOfDivisions, double angle) {
+            View = screen.SetView(0,0, noOfDivisions, noOfDivisions, angle);
+            dX = noOfDivisions / screen.Width;
+            dY = noOfDivisions / screen.Height;
         }
 
         public int PixelValue(int x, int y) =>
