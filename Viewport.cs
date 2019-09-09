@@ -4,43 +4,40 @@ namespace CompositeVideoOscilloscope {
 
     public class Viewport {
         readonly IClip Clip;
-        readonly double[] Matrix;
+        readonly double[] Transformation;
         public readonly double Top, Left, Bottom, Right, Width, Height, CenterX, CenterY, Aspect;
         
-        public Viewport(double left, double top, double right, double bottom, IClip clip = null, double[] matrix = null) {
+        public Viewport(double left, double top, double right, double bottom, IClip clip = null, double[] transformation = null) {
             Top = top; Left=left; Bottom = bottom; Right=right;
             Width = Right - Left; Height = Bottom-Top;
             CenterX = Left + Width/2;
             CenterY = Top + Height/2;
             Aspect = Width / Height;
-            Matrix = matrix ?? Scale(1,1); 
+            Transformation = transformation ?? Scale(1,1); 
             Clip = clip ?? new ClipBox(left, top, right, bottom);
         }
 
         public Viewport SetView(double viewLeft, double viewTop, double viewRight, double viewBottom, double angle=0) {
             double width = viewRight - viewLeft, height = viewBottom - viewTop;
-            var newMtx = Matrix;
+            var newTransformation = Transformation;
 
-            newMtx = Multiply(Translate(-Left, -Top), newMtx);
-            newMtx = Multiply(Translate(-Width/2, -Height/2), newMtx);
-            newMtx = Multiply(Scale(1/Aspect, 1), newMtx);
-            newMtx = Multiply(Rotate(angle), newMtx);
-            newMtx = Multiply(Scale(Aspect, 1), newMtx);
-            newMtx = Multiply(Translate(Width/2, Height/2), newMtx);
-            newMtx = Multiply(Scale(width/Width, height/Height), newMtx);
-            newMtx = Multiply(Translate(viewLeft, viewTop), newMtx);
+            newTransformation = Multiply(Translate(-Left, -Top), newTransformation);
+            newTransformation = Multiply(Translate(-Width/2, -Height/2), newTransformation);
+            newTransformation = Multiply(Scale(1/Aspect, 1), newTransformation);
+            newTransformation = Multiply(Rotate(angle), newTransformation);
+            newTransformation = Multiply(Scale(Aspect, 1), newTransformation);
+            newTransformation = Multiply(Translate(Width/2, Height/2), newTransformation);
+            newTransformation = Multiply(Scale(width/Width, height/Height), newTransformation);
+            newTransformation = Multiply(Translate(viewLeft, viewTop), newTransformation);
 
-            return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Clip, newMtx);
+            return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Clip, newTransformation);
         }
 
         public bool Visible(double x, double y) =>
             Clip.Visible(x,y);
             
         public (double x, double y) Transform(double x, double y) =>
-            ( x*Matrix[0] + y*Matrix[1] + Matrix[2], x*Matrix[3] + y*Matrix[4] + Matrix[5]  );
-
-        public (double x, double y) Transform((double x , double y) pos)  =>
-            Transform(pos.x, pos.y);
+            ( x*Transformation[0] + y*Transformation[1] + Transformation[2], x*Transformation[3] + y*Transformation[4] + Transformation[5]  );
 
         static double[] Scale(double sx, double sy) => 
             new double[] { sx, 0, 0,  0, sy, 0,  0, 0, 1 };

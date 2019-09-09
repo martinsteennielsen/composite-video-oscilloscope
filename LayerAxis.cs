@@ -4,21 +4,19 @@ namespace CompositeVideoOscilloscope {
 
     public class LayerAxis : IScreenContent {
         readonly Viewport View;
-        readonly double dX, dY;
+        readonly double Width;
 
         public LayerAxis(Viewport screen, double noOfDivisions, double angle) {
-            View = screen.SetView(0,0, noOfDivisions, noOfDivisions, angle);
-            dX = noOfDivisions / screen.Width;
-            dY = noOfDivisions / screen.Height;
+            View = screen.SetView(10,10, 10+noOfDivisions, 10+noOfDivisions, angle);
+            var (dX,dY) = View.Transform(1,1);
+            var (doX,doY) = View.Transform(0,0);
+            Width = Math.Sqrt( (dX-doX)*(dX-doX) + (dY-doY)*(dY-doY));
         }
 
         public int PixelValue(int x, int y) =>
              Value(View.Transform(x,y));
 
         private int Value((double x, double y) pos) =>
-            (Frac(pos.x)>Frac(pos.x+dX)) || (Frac(pos.y)>Frac(pos.y+dY)) ? 0 :255;
-
-        private double Frac(double x) => 
-            x - Math.Truncate(x);
+             pos.x%1 < Width || pos.y%1 < Width ? 0 :255;
     }
 }

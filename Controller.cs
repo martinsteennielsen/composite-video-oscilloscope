@@ -11,7 +11,7 @@ namespace CompositeVideoOscilloscope {
         private readonly Controls Controls = 
             new Controls() {
                  NumberOfDivisions = 10,
-                 ScreenPosition =  (0.4,0.1,.9,.9),
+                 ScreenPosition =  (0,0,1,1),
                  Units =  (.005, 0.5),
                  VideoStandard = VideoStandard.Pal5MhzProgessiv,
                  TriggerVoltage = 0.6,
@@ -21,7 +21,7 @@ namespace CompositeVideoOscilloscope {
 
         public Controller() {
             Movements = new Movements();
-            Movements.Add(Math.PI / 2, 0.1, 0.0000001, () => Controls.Angle, d => Controls.Angle += d);
+            Movements.Add(Math.PI / 2, 0.4, 0.01, () => Controls.Angle, d => Controls.Angle += d);
             Stopwatch = new Stopwatch();
             Stopwatch.Start();
         }
