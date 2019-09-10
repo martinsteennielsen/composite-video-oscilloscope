@@ -7,7 +7,7 @@ namespace CompositeVideoOscilloscope {
         const int ns = 10000000;
         double LastFrameTime = 0;
 
-        public List<int> Generate(double time, VideoStandard standard, IScreenContent content) {
+        public List<int> Generate(double time, VideoStandard standard, ScreenContent content) {
             if (time > LastFrameTime + (2d * standard.Timing.FrameTime)) {
                 var (frame, frameDuration) = GenerateFrame(standard, content);
                 LastFrameTime += frameDuration;
@@ -17,7 +17,17 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        (List<int>, double) GenerateFrame(VideoStandard standard, IScreenContent content) {
+        (List<int>, double) GenerateFrame(VideoStandard standard, ScreenContent content) {
+
+            int intensity(int sx, int sy) {
+                int val = content.Intensity(sx,sy);
+                int vres = val * (255 - standard.BlackLevel);
+                vres /= 255;
+                vres += standard.BlackLevel;
+                vres = vres > 255 ? 255 : Math.Max(standard.BlackLevel, vres);
+                return val == 0 ? standard.BlackLevel : vres;
+            }
+
             int x = 0, y = 0;
             int time = 0, signalStart = 0;
             int dt = (int)(ns / standard.Timing.BandwidthFreq);
@@ -28,7 +38,7 @@ namespace CompositeVideoOscilloscope {
                     foreach (var signal in block.Signals) {
                         x = 0;
                         for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 255 ? content.PixelValue(x,y) : signal.Value);
+                            frameValues.Add(signal.Value == 255 ? intensity(x,y) : signal.Value);
                             x++;
                         }
                         signalStart += signal.Duration;
