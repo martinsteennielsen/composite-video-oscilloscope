@@ -2,7 +2,8 @@
 using System;
 
 namespace CompositeVideoOscilloscope {
-    public class LayerSignal : IScreenContent {
+
+    public class LayerSignal {
 
         private readonly Viewport View;
         private readonly InputSignal Signal;
@@ -23,14 +24,14 @@ namespace CompositeVideoOscilloscope {
             (d2T, d2V) = (2*dT, 2*dV);
         }
 
-        public int PixelValue(int x, int y) =>
+        public int Intensity(int x, int y) =>
             PixelValue(View.Transform(x,y));
 
 
         static double[] sigbuf = new double[5];
 
         private int PixelValue((double t, double v) position) {
-            if (!TryGet(position.t, dT, ref sigbuf)) { return 0xff; }
+            if (!TryGet(position.t, dT, ref sigbuf)) { return 0; }
 
             double v = position.v;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
@@ -45,7 +46,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         private int Pixel(bool dd, bool du, bool dl, bool dr) =>
-            (dd && du && dl && dr) || !(dd || du || dl || dr) ? 1 : 4;
+            (dd && du && dl && dr) || !(dd || du || dl || dr) ? 0 : 1;
 
         private bool TryGet(double time, double dt, ref double[] value) =>
             Signal.TryGet(time-d2T, out value[0]) &&

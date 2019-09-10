@@ -2,7 +2,7 @@
 
 namespace CompositeVideoOscilloscope {
 
-    public class LayerAxis : IScreenContent {
+    public class LayerAxis  {
         readonly Viewport View;
         readonly double Width;
 
@@ -13,10 +13,10 @@ namespace CompositeVideoOscilloscope {
             Width = Math.Sqrt( (dX-doX)*(dX-doX) + (dY-doY)*(dY-doY));
         }
 
-        public int PixelValue(int x, int y) =>
+        public int Intensity(int x, int y) =>
              Value(View.Transform(x,y));
 
         private int Value((double x, double y) pos) =>
-             pos.x%1 < Width || pos.y%1 < Width ? 0 :255;
+             pos.x%1 < Width || pos.y%1 < Width ? 0xFF : 0;
     }
 }

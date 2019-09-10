@@ -13,5 +13,9 @@ namespace CompositeVideoOscilloscope {
         public double TriggerVoltage;
         public double TriggerEdge;
         public double Angle;
+        public int IntensityAxis = 0x00;
+        public int IntensityBackground = 0x20;
+        public int IntensitySignal = 0xFF;
+
     }
 }
