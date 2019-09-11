@@ -3,11 +3,15 @@ using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
 
+    public interface IContent {
+        int Intensity(int x, int y);
+    }
+
     public class VideoSignal {
         const int ns = 10000000;
         double LastFrameTime = 0;
 
-        public List<int> Generate(double time, VideoStandard standard, ScreenContent content) {
+        public List<int> Generate(double time, VideoStandard standard, IContent content) {
             if (time > LastFrameTime + (2d * standard.Timing.FrameTime)) {
                 var (frame, frameDuration) = GenerateFrame(standard, content);
                 LastFrameTime += frameDuration;
@@ -17,7 +21,7 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        (List<int>, double) GenerateFrame(VideoStandard standard, ScreenContent content) {
+        (List<int>, double) GenerateFrame(VideoStandard standard, IContent content) {
 
             int intensity(int sx, int sy) {
                 int val = content.Intensity(sx,sy);

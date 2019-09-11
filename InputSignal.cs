@@ -27,21 +27,21 @@ namespace CompositeVideoOscilloscope {
             return true;
         }
 
-        public void Run(Controls controls) {
+        public void Run(double currentTime, double triggerVoltage, double triggerEdge) {
             TriggerOffsetTime = 0;
-            StartTime=controls.CurrentTime;
+            StartTime=currentTime;
             double time = StartTime;
             bool triggered = false;
             for (int idx=0; idx<Buffer.Length; idx++) {
                 double currentVoltage = Generate(time);
                 if (!triggered && idx > 0) {
                     double lastVoltage = Buffer[idx-1];
-                    bool currentTrigger = currentVoltage > controls.TriggerVoltage;
-                    bool lastTrigger = lastVoltage > controls.TriggerVoltage;
+                    bool currentTrigger = currentVoltage > triggerVoltage;
+                    bool lastTrigger = lastVoltage > triggerVoltage;
 
                     if (currentTrigger && !lastTrigger 
-                        && currentVoltage - lastVoltage > controls.TriggerEdge ){
-                        double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, controls.TriggerVoltage);
+                        && currentVoltage - lastVoltage > triggerEdge ){
+                        double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, triggerVoltage);
                         TriggerOffsetTime = interpolatedTime + time - (SampleTime + StartTime);
                         triggered=true;
                     }

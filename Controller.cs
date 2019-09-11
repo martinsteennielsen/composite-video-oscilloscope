@@ -6,22 +6,16 @@ using System.Threading.Tasks;
 namespace CompositeVideoOscilloscope {
 
     public class Controller {
-        private readonly Movements Movements;
+        public readonly Movements Movements;
         private readonly Stopwatch Stopwatch;
-        private readonly Controls Controls = 
+        public readonly Controls Controls = 
             new Controls() {
-                 NumberOfDivisions = 10,
-                 ScreenPosition =  (0,0,1,1),
-                 Units =  (.005, 0.5),
                  VideoStandard = VideoStandard.Pal5MhzProgessiv,
-                 TriggerVoltage = 0.6,
-                 TriggerEdge = 0,
-                 Angle=0
+                 PlotControls =  new PlotControls {  NumberOfDivisions = 10, Units =  (.005, 0.5), TriggerVoltage = 0.6, TriggerEdge = 0 }
             };
 
         public Controller() {
             Movements = new Movements();
-            Movements.Add(Math.PI / 2, 0.4, 0.01, () => Controls.Angle, d => Controls.Angle += d);
             Stopwatch = new Stopwatch();
             Stopwatch.Start();
         }

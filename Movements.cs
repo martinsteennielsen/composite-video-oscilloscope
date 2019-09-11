@@ -7,8 +7,6 @@ namespace CompositeVideoOscilloscope {
         readonly List<Movement> Moves = new List<Movement>();
 
         public void Add(double target, double velocity, double acceleration, Func<double> position, Action<double> move) {
-            acceleration = position() > target ? -acceleration : acceleration;
-            velocity = position() > target ? -velocity : velocity;
             Moves.Add(new Movement() { Target = target, Position=position, Move=move, Accelaration = acceleration, Velocity = velocity});
         }
 
@@ -31,9 +29,7 @@ namespace CompositeVideoOscilloscope {
             var delta = Velocity * elpasedTime;
             var current = Position();
 
-            if (current + delta < Target && Accelaration>0) {
-                Move(delta);
-            } else if (current + delta > Target && Accelaration<0 ) {
+            if (current + delta != Target) {
                 Move(delta);
             } else {
                 Move(Target - current);

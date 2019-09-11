@@ -9,16 +9,16 @@ namespace CompositeVideoOscilloscope {
         private readonly InputSignal Signal;
         private readonly double dT, dV, d2T, d2V;
         
-        public LayerSignal(Viewport screen, InputSignal signal, Controls controls) {
+        public LayerSignal(Viewport screen, InputSignal signal, PlotControls controls, double angle, double currentTime) {
             Signal = signal;
 
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
 
             View = screen.SetView(
-                controls.CurrentTime + controls.Position.Time + signal.TriggerOffsetTime,
+                currentTime + controls.Position.Time + signal.TriggerOffsetTime,
                 controls.Position.Voltage + controls.Units.Voltage * divisionsPrQuadrant,
-                controls.CurrentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
-                controls.Position.Voltage - controls.Units.Voltage * divisionsPrQuadrant, controls.Angle);
+                currentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
+                controls.Position.Voltage - controls.Units.Voltage * divisionsPrQuadrant, angle);
 
             (dT,dV) = (View.Width / (screen.Width*2), View.Height / (screen.Height*2));
             (d2T, d2V) = (2*dT, 2*dV);
@@ -26,7 +26,6 @@ namespace CompositeVideoOscilloscope {
 
         public int Intensity(int x, int y) =>
             PixelValue(View.Transform(x,y));
-
 
         static double[] sigbuf = new double[5];
 

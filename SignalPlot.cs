@@ -1,21 +1,27 @@
 using System;
 
 namespace CompositeVideoOscilloscope {
-    public class SignalContent {
+    public class Location {
+        public double Left;
+        public double Top;
+        public double Right;
+        public double Bottom;
+        public double Angle=0;
+    }
+
+    public class SignalPlot {
         readonly Viewport Viewport;
         readonly LayerSignal LayerSignal;
         readonly LayerAxis LayerAxis;
 
         readonly Controls Controls;
 
-        public SignalContent(Controls controls, InputSignal signal) {
+        public SignalPlot(Location pos, Controls controls, InputSignal signal) {
             var standard = controls.VideoStandard; 
             var size = standard.VisibleWidth;
-            var (l,t,r,b) = controls.ScreenPosition;
-            Viewport = new Viewport(standard.VisibleWidth * l, standard.VisibleHeight * t, standard.VisibleWidth * r, standard.VisibleHeight * b);
-
-            LayerSignal =  new LayerSignal(Viewport, signal, controls);
-            LayerAxis =  new LayerAxis(Viewport, controls.NumberOfDivisions, controls.Angle);
+            Viewport = new Viewport(standard.VisibleWidth * pos.Left, standard.VisibleHeight * pos.Top, standard.VisibleWidth * pos.Right, standard.VisibleHeight * pos.Bottom);
+            LayerSignal =  new LayerSignal(Viewport, signal, controls.PlotControls, pos.Angle, controls.CurrentTime);
+            LayerAxis =  new LayerAxis(Viewport, controls.PlotControls.NumberOfDivisions, pos.Angle);
             Controls = controls;
         }
 
@@ -27,7 +33,7 @@ namespace CompositeVideoOscilloscope {
             return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Intensity(x,y));
         }
 
-        private int Blend(int intensityA, int intensityB, int alpha) => 
+        int Blend(int intensityA, int intensityB, int alpha) => 
             intensityA + ((intensityB - intensityA)*alpha)/0xFF;
 
     }
