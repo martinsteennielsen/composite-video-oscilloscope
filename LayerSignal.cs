@@ -4,12 +4,11 @@ using System;
 namespace CompositeVideoOscilloscope {
 
     public class LayerSignal {
-
         private readonly Viewport View;
-        private readonly InputSignal Signal;
+        private readonly SignalSample Signal;
         private readonly double dT, dV, d2T, d2V;
         
-        public LayerSignal(Viewport screen, InputSignal signal, PlotControls controls, double angle, double currentTime) {
+        public LayerSignal(Viewport screen, SignalSample signal, PlotControls controls, double angle, double currentTime) {
             Signal = signal;
 
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;

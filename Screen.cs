@@ -6,23 +6,25 @@ namespace CompositeVideoOscilloscope {
     public class Screen {
         readonly Controls Controls;
         readonly InputSignal Signal;
-
-        readonly Location LocationPlot1, LocationPlot2;
+        readonly Location Location1, Location2;
 
         public Screen(Controller controller, InputSignal signal) {
             Controls = controller.Controls;
             Signal = signal;
-            LocationPlot1 = new Location { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle=0 };
-            LocationPlot2 = new Location { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle=0 };
+            Location1 = new Location { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle=0 };
+            Location2 = new Location { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle=0 };
             
-            controller.Movements.Add(0, -0.04, 0, () => LocationPlot2.Left, d => LocationPlot2.Left += d);
-            controller.Movements.Add(0, -0.04, 0, () => LocationPlot2.Top, d => LocationPlot2.Top += d);
-            controller.Movements.Add(Math.PI / 2, 0.4, 0.01, () => LocationPlot2.Angle, d => LocationPlot2.Angle += d);
-            controller.Movements.Add(-Math.PI / 2, -0.2, -0.01, () => LocationPlot1.Angle, d => LocationPlot1.Angle += d);
+            controller.Movements.Add(0, -0.04, 0, () => Location2.Left, d => Location2.Left += d);
+            controller.Movements.Add(0, -0.04, 0, () => Location2.Top, d => Location2.Top += d);
+            controller.Movements.Add(Math.PI / 2, 0.4, 0.01, () => Location2.Angle, d => Location2.Angle += d);
+            controller.Movements.Add(-Math.PI / 2, -0.2, -0.01, () => Location1.Angle, d => Location1.Angle += d);
         }
 
         public IContent Content =>
-            new FrameContent( new SignalPlot(LocationPlot1, Controls, Signal), new SignalPlot(LocationPlot2, Controls, Signal));
+            new FrameContent( 
+                new SignalPlot(Location1, Controls.PlotControls, Controls.VideoStandard, Signal.GetSample(0, Controls.CurrentTime, Controls.PlotControls.TriggerVoltage, Controls.PlotControls.TriggerEdge), Controls.CurrentTime),
+                new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, Signal.GetSample(1, Controls.CurrentTime, Controls.PlotControls.TriggerVoltage, Controls.PlotControls.TriggerEdge), Controls.CurrentTime) 
+            );
 
 
         class FrameContent : IContent {

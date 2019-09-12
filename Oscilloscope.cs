@@ -19,7 +19,6 @@ namespace CompositeVideoOscilloscope {
             var videoSignal = new VideoSignal();
             while (!canceller.IsCancellationRequested) {
                 var controls = await Controller.Run().ConfigureAwait(false);
-                InputSignal.Run(controls.CurrentTime, controls.PlotControls.TriggerVoltage, controls.PlotControls.TriggerEdge);
                 Output.Send(videoSignal.Generate(controls.CurrentTime, controls.VideoStandard, content: Screen.Content));
             }
         }

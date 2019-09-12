@@ -6,22 +6,20 @@ namespace CompositeVideoOscilloscope {
         public double Top;
         public double Right;
         public double Bottom;
-        public double Angle=0;
+        public double Angle;
     }
 
     public class SignalPlot {
         readonly Viewport Viewport;
         readonly LayerSignal LayerSignal;
         readonly LayerAxis LayerAxis;
+        readonly PlotControls Controls;
 
-        readonly Controls Controls;
-
-        public SignalPlot(Location pos, Controls controls, InputSignal signal) {
-            var standard = controls.VideoStandard; 
+        public SignalPlot(Location pos, PlotControls controls, VideoStandard standard, SignalSample signal, double currentTime) {
             var size = standard.VisibleWidth;
             Viewport = new Viewport(standard.VisibleWidth * pos.Left, standard.VisibleHeight * pos.Top, standard.VisibleWidth * pos.Right, standard.VisibleHeight * pos.Bottom);
-            LayerSignal =  new LayerSignal(Viewport, signal, controls.PlotControls, pos.Angle, controls.CurrentTime);
-            LayerAxis =  new LayerAxis(Viewport, controls.PlotControls.NumberOfDivisions, pos.Angle);
+            LayerSignal =  new LayerSignal(Viewport, signal, controls, pos.Angle, currentTime);
+            LayerAxis =  new LayerAxis(Viewport, controls.NumberOfDivisions, pos.Angle);
             Controls = controls;
         }
 
