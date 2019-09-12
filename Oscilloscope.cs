@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
     public class Oscilloscope {
-        readonly InputSignal InputSignal;
+        readonly Aquisition Aquisition;
         readonly Controller Controller;
         readonly Output Output;
         readonly Screen Screen;
@@ -11,8 +11,8 @@ namespace CompositeVideoOscilloscope {
         public Oscilloscope(Output output) {
             Output = output;
             Controller = new Controller(); 
-            InputSignal = new InputSignal();
-            Screen = new Screen(Controller, signal: InputSignal);
+            Aquisition = new Aquisition();
+            Screen = new Screen(Controller, aquisition: Aquisition);
         }
 
         public async Task Run(CancellationToken canceller) {

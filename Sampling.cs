@@ -1,29 +1,29 @@
 namespace CompositeVideoOscilloscope {
-    public class SignalSample {
-        readonly double StartTime;
+    public class Sampling {
+        public readonly double StartTime;
         readonly double EndTime;
         readonly double SampleTime;
         readonly double[] Buffer;
-        public readonly double TriggerOffsetTime;
+        public readonly double TriggerTime;
 
-        public SignalSample(double[] buffer, double startTime, double endTime, double sampleTime, double triggerVoltage, double triggerEdge) {
+        public Sampling(double[] buffer, double startTime, double endTime, double sampleTime, TriggerControls trigger) {
             Buffer = buffer;
             StartTime = startTime;
             EndTime = endTime;
             SampleTime = sampleTime;
-            TriggerOffsetTime = GetTriggerOffset(buffer, startTime, sampleTime, triggerVoltage, triggerEdge);
+            TriggerTime = RunTrigger(buffer, startTime, sampleTime, trigger);
         }
 
-        double GetTriggerOffset(double[] buffer, double startTime, double sampleTime, double triggerVoltage, double triggerEdge) {
+        double RunTrigger(double[] buffer, double startTime, double sampleTime, TriggerControls trigger) {
             double time = startTime+SampleTime;
             for (int idx=1; idx<Buffer.Length; idx++) {
                 double currentVoltage = Buffer[idx];
                 double lastVoltage = Buffer[idx-1];
-                bool currentTrigger = currentVoltage > triggerVoltage;
-                bool lastTrigger = lastVoltage > triggerVoltage;
+                bool currentTrigger = currentVoltage > trigger.Voltage;
+                bool lastTrigger = lastVoltage > trigger.Voltage;
 
-                if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > triggerEdge) {
-                    double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, triggerVoltage);
+                if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > trigger.Edge) {
+                    double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, trigger.Voltage);
                     if (double.IsInfinity(interpolatedTime)) { interpolatedTime = 0; }
                     return interpolatedTime + time - (SampleTime + StartTime);
                 }

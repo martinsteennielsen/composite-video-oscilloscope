@@ -1,13 +1,6 @@
 using System;
 
 namespace CompositeVideoOscilloscope {
-    public class Location {
-        public double Left;
-        public double Top;
-        public double Right;
-        public double Bottom;
-        public double Angle;
-    }
 
     public class SignalPlot {
         readonly Viewport Viewport;
@@ -15,10 +8,10 @@ namespace CompositeVideoOscilloscope {
         readonly LayerAxis LayerAxis;
         readonly PlotControls Controls;
 
-        public SignalPlot(Location pos, PlotControls controls, VideoStandard standard, SignalSample signal, double currentTime) {
+        public SignalPlot(LocationControls pos, PlotControls controls, VideoStandard standard, Sampling sampling) {
             var size = standard.VisibleWidth;
             Viewport = new Viewport(standard.VisibleWidth * pos.Left, standard.VisibleHeight * pos.Top, standard.VisibleWidth * pos.Right, standard.VisibleHeight * pos.Bottom);
-            LayerSignal =  new LayerSignal(Viewport, signal, controls, pos.Angle, currentTime);
+            LayerSignal =  new LayerSignal(Viewport, sampling, controls, pos.Angle);
             LayerAxis =  new LayerAxis(Viewport, controls.NumberOfDivisions, pos.Angle);
             Controls = controls;
         }

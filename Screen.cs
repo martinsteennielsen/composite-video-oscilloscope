@@ -5,14 +5,14 @@ namespace CompositeVideoOscilloscope {
 
     public class Screen {
         readonly Controls Controls;
-        readonly InputSignal Signal;
-        readonly Location Location1, Location2;
+        readonly Aquisition Aquisition;
+        readonly LocationControls Location1, Location2;
 
-        public Screen(Controller controller, InputSignal signal) {
+        public Screen(Controller controller, Aquisition aquisition) {
             Controls = controller.Controls;
-            Signal = signal;
-            Location1 = new Location { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle=0 };
-            Location2 = new Location { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle=0 };
+            Aquisition = aquisition;
+            Location1 = new LocationControls { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle=0 };
+            Location2 = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle=0 };
             
             controller.Movements.Add(0, -0.04, 0, () => Location2.Left, d => Location2.Left += d);
             controller.Movements.Add(0, -0.04, 0, () => Location2.Top, d => Location2.Top += d);
@@ -22,8 +22,8 @@ namespace CompositeVideoOscilloscope {
 
         public IContent Content =>
             new FrameContent( 
-                new SignalPlot(Location1, Controls.PlotControls, Controls.VideoStandard, Signal.GetSample(0, Controls.CurrentTime, Controls.PlotControls.TriggerVoltage, Controls.PlotControls.TriggerEdge), Controls.CurrentTime),
-                new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, Signal.GetSample(1, Controls.CurrentTime, Controls.PlotControls.TriggerVoltage, Controls.PlotControls.TriggerEdge), Controls.CurrentTime) 
+                new SignalPlot(Location1, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(0, Controls.CurrentTime, Controls.PlotControls.Trigger)),
+                new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(1, Controls.CurrentTime, Controls.PlotControls.Trigger)) 
             );
 
 
@@ -31,7 +31,7 @@ namespace CompositeVideoOscilloscope {
             readonly SignalPlot Plot1, Plot2;
 
             public FrameContent(SignalPlot plot1, SignalPlot plot2) {
-                Plot1 = plot1;
+                Plot1 = plot1; 
                 Plot2 = plot2;
             }
 

@@ -5,18 +5,18 @@ namespace CompositeVideoOscilloscope {
 
     public class LayerSignal {
         private readonly Viewport View;
-        private readonly SignalSample Signal;
+        private readonly Sampling Sample;
         private readonly double dT, dV, d2T, d2V;
         
-        public LayerSignal(Viewport screen, SignalSample signal, PlotControls controls, double angle, double currentTime) {
-            Signal = signal;
+        public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle) {
+            Sample = sample;
 
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
 
             View = screen.SetView(
-                currentTime + controls.Position.Time + signal.TriggerOffsetTime,
+                sample.StartTime + controls.Position.Time + sample.TriggerTime,
                 controls.Position.Voltage + controls.Units.Voltage * divisionsPrQuadrant,
-                currentTime + signal.TriggerOffsetTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
+                sample.StartTime + sample.TriggerTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
                 controls.Position.Voltage - controls.Units.Voltage * divisionsPrQuadrant, angle);
 
             (dT,dV) = (View.Width / (screen.Width*2), View.Height / (screen.Height*2));
@@ -47,10 +47,10 @@ namespace CompositeVideoOscilloscope {
             (dd && du && dl && dr) || !(dd || du || dl || dr) ? 0 : 1;
 
         private bool TryGet(double time, double dt, ref double[] value) =>
-            Signal.TryGet(time-d2T, out value[0]) &&
-            Signal.TryGet(time-dT, out value[1]) &&
-            Signal.TryGet(time, out value[2]) &&
-            Signal.TryGet(time+dT, out value[3]) &&
-            Signal.TryGet(time+d2T, out value[4]);
+            Sample.TryGet(time-d2T, out value[0]) &&
+            Sample.TryGet(time-dT, out value[1]) &&
+            Sample.TryGet(time, out value[2]) &&
+            Sample.TryGet(time+dT, out value[3]) &&
+            Sample.TryGet(time+d2T, out value[4]);
     }
 }

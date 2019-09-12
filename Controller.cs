@@ -11,7 +11,10 @@ namespace CompositeVideoOscilloscope {
         public readonly Controls Controls = 
             new Controls() {
                  VideoStandard = VideoStandard.Pal5MhzProgessiv,
-                 PlotControls =  new PlotControls {  NumberOfDivisions = 10, Units =  (.005, 0.5), TriggerVoltage = 0.6, TriggerEdge = 0 }
+                 PlotControls =  new PlotControls {  
+                        NumberOfDivisions = 10, 
+                        Units =  (.005, 0.5), 
+                        Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 } }
             };
 
         public Controller() {
