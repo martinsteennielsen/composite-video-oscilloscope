@@ -35,7 +35,7 @@ namespace CompositeVideoOscilloscope {
     }
 
     public struct VideoStandard {
-        const int ns = 10000000;
+        const long ps = (long)1e12;
         public readonly SignalBlocks[] Blocks; 
         public readonly Timing Timing;
         public readonly int InterlacedScaler;
@@ -46,14 +46,14 @@ namespace CompositeVideoOscilloscope {
         }
 
         public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
-        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(signals: ProgressiveFrame(Timing.iPal), timing: Timing.pPal, interlaced: false);
+        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(signals: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
 
         public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
         public double VisibleHeight => InterlacedScaler * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
 
         public int BlackLevel => Timing.SyncTimes.BlackLevel;
 
-        public struct Signal { public int Value; public int Duration; };
+        public struct Signal { public int Value; public long Duration; };
         public struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
         
 
@@ -61,20 +61,20 @@ namespace CompositeVideoOscilloscope {
             int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
             var synl = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.LineSyncTime )} };
+                new Signal { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
             var syns = new[] {
-                new Signal { Value = dark , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
-                new Signal { Value = sync,  Duration = (int)(ns * timing.SyncTimes.EquPulseTime) } };
+                new Signal { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new Signal { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
             var line = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (int)(ns * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = sign , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
-                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.FrontPorchTime) },
+                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
                 };
             var blank = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
                 };
 
             return new[] {
@@ -92,20 +92,20 @@ namespace CompositeVideoOscilloscope {
             int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
             var synl = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.LineSyncTime )} };
+                new Signal { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
             var syns = new[] {
-                new Signal { Value = dark , Duration = (int)(ns * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
-                new Signal { Value = sync,  Duration = (int)(ns * timing.SyncTimes.EquPulseTime) } };
+                new Signal { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new Signal { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
             var line = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (int)(ns * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = sign , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
-                new Signal { Value = dark , Duration = (int)(ns * timing.SyncTimes.FrontPorchTime) },
+                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
                 };
             var blank = new[] {
-                new Signal { Value = sync , Duration = (int)(ns * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (int)(ns * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new Signal { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
                 };
 
             return new[] {

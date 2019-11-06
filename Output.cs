@@ -15,8 +15,11 @@ namespace CompositeVideoOscilloscope {
             Publisher.Bind(address);
         }
 
-        public void Send(List<int> values) {
-            Publisher.SendFrame(values.Select(x => (byte)x).ToArray());
+        public void Send(List<int> values, double sampleRate) {
+            var msg = new NetMQMessage();
+            msg.Append((long)sampleRate);
+            msg.Append(values.Select(x => (byte)x).ToArray());
+            Publisher.SendMultipartMessage(msg);
         }
 
         public void Dispose() {

@@ -8,7 +8,7 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class VideoSignal {
-        const int ns = 10000000;
+        const long ps = (long)1e12;
         double LastFrameTime = 0;
 
         public List<int> Generate(double time, VideoStandard standard, IContent content) {
@@ -33,8 +33,8 @@ namespace CompositeVideoOscilloscope {
             }
 
             int x = 0, y = 0;
-            int time = 0, signalStart = 0;
-            int dt = (int)(ns / standard.Timing.BandwidthFreq);
+            long time = 0, signalStart = 0;
+            long dt = (long)(ps/standard.Timing.BandwidthFreq);
             var frameValues = new List<int>();
             foreach (var block in standard.Blocks) {
                 y = block.sy;
@@ -50,7 +50,7 @@ namespace CompositeVideoOscilloscope {
                     y += block.dy;
                 }
             }
-            return (frameValues, time / ns);
+            return (frameValues, time / ps);
         }
     }
 }

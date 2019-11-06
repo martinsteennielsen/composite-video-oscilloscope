@@ -19,7 +19,7 @@ namespace CompositeVideoOscilloscope {
             var videoSignal = new VideoSignal();
             while (!canceller.IsCancellationRequested) {
                 var controls = await Controller.Run().ConfigureAwait(false);
-                Output.Send(videoSignal.Generate(controls.CurrentTime, controls.VideoStandard, content: Screen.Content));
+                Output.Send(videoSignal.Generate(controls.CurrentTime, controls.VideoStandard, content: Screen.Content), sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
             }
         }
     }
