@@ -1,7 +1,4 @@
-﻿
-using System;
-
-namespace CompositeVideoOscilloscope {
+﻿namespace CompositeVideoOscilloscope {
 
     public class LayerSignal {
         private readonly Viewport View;
@@ -29,7 +26,7 @@ namespace CompositeVideoOscilloscope {
         static double[] sigbuf = new double[5];
 
         private int PixelValue((double t, double v) position) {
-            if (!TryGet(position.t, dT, ref sigbuf)) { return 0; }
+            if (!TryGet(position.t, ref sigbuf)) { return 0x00; }
 
             double v = position.v;
             double vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
@@ -46,11 +43,11 @@ namespace CompositeVideoOscilloscope {
         private int Pixel(bool dd, bool du, bool dl, bool dr) =>
             (dd && du && dl && dr) || !(dd || du || dl || dr) ? 0 : 1;
 
-        private bool TryGet(double time, double dt, ref double[] value) =>
-            Sample.TryGet(time-d2T, out value[0]) &&
-            Sample.TryGet(time-dT, out value[1]) &&
-            Sample.TryGet(time, out value[2]) &&
-            Sample.TryGet(time+dT, out value[3]) &&
-            Sample.TryGet(time+d2T, out value[4]);
+        private bool TryGet(double t, ref double[] value) =>
+            Sample.TryGet(t-d2T, out value[0]) &&
+            Sample.TryGet(t-dT, out value[1]) &&
+            Sample.TryGet(t, out value[2]) &&
+            Sample.TryGet(t+dT, out value[3]) &&
+            Sample.TryGet(t+d2T, out value[4]);
     }
 }
