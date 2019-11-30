@@ -30,8 +30,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         public static Timing iPal => new Timing(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
-        public static Timing pPal => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 7e6, syncTimes: SyncConstants.Pal);
-
+        public static Timing pPal => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
     }
 
     public struct VideoStandard {

@@ -1,11 +1,13 @@
-﻿namespace CompositeVideoOscilloscope {
+﻿using System.Collections.Generic;
+
+namespace CompositeVideoOscilloscope {
 
     public class LayerSignal {
         private readonly Viewport View;
         private readonly Sampling Sample;
         private readonly double dT, dV, d2T, d2V;
         
-        public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle) {
+        public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle, VideoStandard standard) {
             Sample = sample;
 
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
@@ -21,11 +23,10 @@
         }
 
         public int Intensity(int x, int y) =>
-            PixelValue(View.Transform(x,y));
-
-        static double[] sigbuf = new double[5];
+            PixelValue( View.Transform(x,y) );
 
         private int PixelValue((double t, double v) position) {
+            double[] sigbuf = new double[5]; 
             if (!TryGet(position.t, ref sigbuf)) { return 0x00; }
 
             double v = position.v;

@@ -16,6 +16,12 @@ namespace CompositeVideoOscilloscope {
         public double Angle;
     }
 
+    public enum SubSampleRender {
+        ConnectStairs = 0,
+        ConnectLine = 1,
+        NotConnected = 2,
+    }
+
     public class PlotControls {
         public double NumberOfDivisions;
         public (double Time, double Voltage) Offset;
@@ -25,7 +31,9 @@ namespace CompositeVideoOscilloscope {
         public int IntensityAxis = 0x00;
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
+        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectStairs;
     }
+    
 
     public class Controls {
         public VideoStandard VideoStandard;

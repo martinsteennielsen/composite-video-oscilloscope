@@ -7,13 +7,15 @@ namespace CompositeVideoOscilloscope {
         readonly double SampleTime;
         readonly double[] Buffer;
         public readonly double TriggerTime;
+        public readonly SubSampleRender SubSamplePoints;
 
-        public Sampling(double[] buffer, double startTime, double endTime, double sampleTime, TriggerControls trigger) {
+        public Sampling(double[] buffer, double startTime, double endTime, double sampleTime, PlotControls controls) {
             Buffer = buffer;
             StartTime = startTime;
             EndTime = endTime;
             SampleTime = sampleTime;
-            TriggerTime = RunTrigger(trigger);
+            TriggerTime = RunTrigger(controls.Trigger);
+            SubSamplePoints = controls.SubSamplePoints;
         }
 
         double RunTrigger(TriggerControls trigger) {
@@ -50,9 +52,18 @@ namespace CompositeVideoOscilloscope {
                 return false;
             }
             var timeDiff = time - StartTime;
-            int bufpos = (int)(timeDiff / SampleTime);
-            var offset = (timeDiff / SampleTime) % 1.0;
-            value = InterpolateVoltage(Buffer[bufpos], Buffer[bufpos + 1], offset);
+            int bufpos = (int)(timeDiff/SampleTime);
+            
+            if (SubSamplePoints == SubSampleRender.ConnectStairs) {
+                value = Buffer[bufpos];
+            } else if (SubSamplePoints == SubSampleRender.ConnectLine ) {
+                var offset = (timeDiff / SampleTime) % 1.0;
+                value = InterpolateVoltage(Buffer[bufpos], Buffer[bufpos + 1], offset);
+            } else {
+                var offset = (timeDiff / SampleTime) % 1.0;
+                value = Buffer[bufpos];
+                return offset<0.1;
+            }
             return true;
         }
 
