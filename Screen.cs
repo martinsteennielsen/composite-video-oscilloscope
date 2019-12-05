@@ -21,11 +21,32 @@ namespace CompositeVideoOscilloscope {
             controller.Movements.Add(-Math.PI / 2, -0.2, -0.01, () => Location1.Angle, d => Location1.Angle += d);
         }
 
-        public IContent Content =>
-            new FrameContent(
+        public ContentIterator Content =>
+            new ContentIterator(new FrameContent(
                 new SignalPlot(Location1, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(0, Controls.CurrentTime, Controls.PlotControls)),
                 new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(1, Controls.CurrentTime, Controls.PlotControls))
-            );
+            ));
+
+        public class ContentIterator {
+            private readonly IContent Content;
+            private int CurrentX, CurrentY;
+
+            public ContentIterator(IContent content) {
+                Content = content;
+                CurrentX = 0; CurrentY = 0;
+            }
+
+            public void Next() =>
+                CurrentX += 1;
+
+            public void NewLine(int lineNo) {
+                CurrentX = 0;
+                CurrentY = lineNo;
+            }
+
+            internal int Get() =>
+                Content.Intensity(CurrentX, CurrentY);
+        }
 
         class FrameContent : IContent {
             readonly SignalPlot Plot1, Plot2;
