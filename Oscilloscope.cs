@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CompositeVideoOscilloscope {
@@ -19,7 +21,8 @@ namespace CompositeVideoOscilloscope {
             var videoSignal = new VideoSignal();
             while (!canceller.IsCancellationRequested) {
                 var controls = await Controller.Run().ConfigureAwait(false);
-                Output.Send(videoSignal.Generate(controls.CurrentTime, controls.VideoStandard, content: Screen.Content), sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
+                var frame = videoSignal.GenerateFrame(controls.VideoStandard, Screen.Content).SelectMany(x=>x).ToArray();
+                Output.Send(frame, sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
             }
         }
     }

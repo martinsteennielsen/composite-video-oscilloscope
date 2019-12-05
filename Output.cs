@@ -10,15 +10,13 @@ namespace CompositeVideoOscilloscope {
 
         public Output(string address) {
             Publisher = new PublisherSocket();
-            Publisher.Options.SendHighWatermark = 2;
-            Publisher.Options.SendHighWatermark = 5;
             Publisher.Bind(address);
         }
 
-        public void Send(List<int> values, double sampleRate) {
+        public void Send(byte[] values, double sampleRate) {
             var msg = new NetMQMessage();
             msg.Append((long)sampleRate);
-            msg.Append(values.Select(x => (byte)x).ToArray());
+            msg.Append(values);
             Publisher.SendMultipartMessage(msg);
         }
 

@@ -51,16 +51,15 @@ namespace CompositeVideoOscilloscope {
                 value = 0;
                 return false;
             }
-            var timeDiff = time - StartTime;
+            double timeDiff = time - StartTime;
+            double offset = (timeDiff/SampleTime) % 1.0;
             int bufpos = (int)(timeDiff/SampleTime);
             
             if (SubSamplePoints == SubSampleRender.ConnectStairs) {
                 value = Buffer[bufpos];
             } else if (SubSamplePoints == SubSampleRender.ConnectLine ) {
-                var offset = (timeDiff / SampleTime) % 1.0;
                 value = InterpolateVoltage(Buffer[bufpos], Buffer[bufpos + 1], offset);
             } else {
-                var offset = (timeDiff / SampleTime) % 1.0;
                 value = Buffer[bufpos];
                 return offset<0.1;
             }

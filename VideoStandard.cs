@@ -6,7 +6,7 @@ namespace CompositeVideoOscilloscope {
         public double FrontPorchTime;
         public double EquPulseTime;
         public double VerticalSerrationTime;
-        public int BlackLevel;
+        public byte BlackLevel;
         public int BlankLines;
         public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3), BlankLines = 38 };
     }
@@ -35,84 +35,83 @@ namespace CompositeVideoOscilloscope {
 
     public struct VideoStandard {
         const long ps = (long)1e12;
-        public readonly SignalBlocks[] Blocks; 
+        public readonly LineBlock[] LineBlocks; 
         public readonly Timing Timing;
         public readonly int InterlacedScaler;
-        private VideoStandard(SignalBlocks[] signals, Timing timing, bool interlaced) {
-            Blocks=signals;
+        private VideoStandard(LineBlock[] lineBlocks, Timing timing, bool interlaced) {
+            LineBlocks=lineBlocks;
             Timing = timing;
             InterlacedScaler = interlaced ? 2 : 1;
         }
 
-        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(signals: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
-        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(signals: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
+        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(lineBlocks: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
+        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
 
         public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
         public double VisibleHeight => InterlacedScaler * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
 
         public int BlackLevel => Timing.SyncTimes.BlackLevel;
 
-        public struct Signal { public int Value; public long Duration; };
-        public struct SignalBlocks { public int Count; public Signal[] Signals; public int dy; public int sy; };
+        public struct LineSegment { public byte Value; public long Duration; };
+        public struct LineBlock { public int Count; public LineSegment[] LineSegments; public int dy; public int sy; };
         
+        private static LineBlock[] InterlacedFrame(Timing timing) {
+            byte dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
-        private static SignalBlocks[] InterlacedFrame(Timing timing) {
-            int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
-
-            var synl = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
-            var syns = new[] {
-                new Signal { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
-                new Signal { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
-            var line = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
-                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
+            var synlLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new LineSegment { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
+            var synsLine = new[] {
+                new LineSegment { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new LineSegment { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
+            var pictureLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new LineSegment { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new LineSegment { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new LineSegment { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
                 };
-            var blank = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+            var blankLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new LineSegment { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
                 };
 
             return new[] {
-                new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
-                new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 1 },
-                new SignalBlocks { Count = 5  , Signals = syns }, new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 4  , Signals = syns },
-                new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 293, Signals = line, dy = 2, sy = 0 },
-                new SignalBlocks { Count = 6  , Signals = syns },
+                new LineBlock { Count = 5  , LineSegments = synlLine }, new LineBlock { Count = 5  , LineSegments = synsLine },
+                new LineBlock { Count = 12 , LineSegments = blankLine },
+                new LineBlock { Count = 293, LineSegments = pictureLine, dy = 2, sy = 1 },
+                new LineBlock { Count = 5  , LineSegments = synsLine }, new LineBlock { Count = 5  , LineSegments = synlLine }, new LineBlock { Count = 4  , LineSegments = synsLine },
+                new LineBlock { Count = 12 , LineSegments = blankLine },
+                new LineBlock { Count = 293, LineSegments = pictureLine, dy = 2, sy = 0 },
+                new LineBlock { Count = 6  , LineSegments = synsLine },
             };
         }
 
-        private static SignalBlocks[] ProgressiveFrame(Timing timing) {
-            int dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
+        private static LineBlock[] ProgressiveFrame(Timing timing) {
+            byte dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
-            var synl = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
-            var syns = new[] {
-                new Signal { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
-                new Signal { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
-            var line = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
-                new Signal { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
-                new Signal { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
+            var synlLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+                new LineSegment { Value = dark , Duration = (long)(ps * timing.SyncTimes.LineSyncTime )} };
+            var synsLine = new[] {
+                new LineSegment { Value = dark , Duration = (long)(ps * (0.5 * timing.LineTime - timing.SyncTimes.EquPulseTime)) },
+                new LineSegment { Value = sync,  Duration = (long)(ps * timing.SyncTimes.EquPulseTime) } };
+            var pictureLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new LineSegment { Value = dark , Duration = (long)(ps * (timing.SyncTimes.LineBlankingTime - timing.SyncTimes.FrontPorchTime - timing.SyncTimes.LineSyncTime)) },
+                new LineSegment { Value = sign , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineBlankingTime)) },
+                new LineSegment { Value = dark , Duration = (long)(ps * timing.SyncTimes.FrontPorchTime) },
                 };
-            var blank = new[] {
-                new Signal { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
-                new Signal { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
+            var blankLine = new[] {
+                new LineSegment { Value = sync , Duration = (long)(ps * timing.SyncTimes.LineSyncTime) },
+                new LineSegment { Value = dark , Duration = (long)(ps * (timing.LineTime - timing.SyncTimes.LineSyncTime)) },
                 };
 
             return new[] {
-                new SignalBlocks { Count = 5  , Signals = synl }, new SignalBlocks { Count = 5  , Signals = syns },
-                new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 593, Signals = line, dy = 1, sy = 0 },
-                new SignalBlocks { Count = 12 , Signals = blank },
-                new SignalBlocks { Count = 6  , Signals = syns },
+                new LineBlock { Count = 5  , LineSegments = synlLine }, new LineBlock { Count = 5  , LineSegments = synsLine },
+                new LineBlock { Count = 12 , LineSegments = blankLine },
+                new LineBlock { Count = 593, LineSegments = pictureLine, dy = 1, sy = 0 },
+                new LineBlock { Count = 12 , LineSegments = blankLine },
+                new LineBlock { Count = 6  , LineSegments = synsLine },
             };
         }
     }

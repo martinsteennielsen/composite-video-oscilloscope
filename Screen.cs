@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
 
@@ -21,11 +22,10 @@ namespace CompositeVideoOscilloscope {
         }
 
         public IContent Content =>
-            new FrameContent( 
+            new FrameContent(
                 new SignalPlot(Location1, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(0, Controls.CurrentTime, Controls.PlotControls)),
-                new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(1, Controls.CurrentTime, Controls.PlotControls)) 
+                new SignalPlot(Location2, Controls.PlotControls, Controls.VideoStandard, sampling: Aquisition.GetSampling(1, Controls.CurrentTime, Controls.PlotControls))
             );
-
 
         class FrameContent : IContent {
             readonly SignalPlot Plot1, Plot2;

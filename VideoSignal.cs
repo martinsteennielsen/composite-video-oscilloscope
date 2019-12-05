@@ -8,49 +8,114 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class VideoSignal {
-        const long ps = (long)1e12;
-        double LastFrameTime = 0;
-
-        public List<int> Generate(double time, VideoStandard standard, IContent content) {
-            if (time > LastFrameTime + (2d * standard.Timing.FrameTime)) {
-                var (frame, frameDuration) = GenerateFrame(standard, content);
-                LastFrameTime += frameDuration;
-                return frame;
-            } else {
-                return new List<int>();
+        public IEnumerable<byte[]> GenerateFrame(VideoStandard standard, IContent content) {
+            var iterator = new LineIterator(standard, content);
+            while (iterator.HasNext()) {
+                yield return iterator.GetNext();
             }
         }
 
-        (List<int>, double) GenerateFrame(VideoStandard standard, IContent content) {
+        class LineIterator {
+            private readonly IContent Content;
+            private readonly VideoStandard Standard;
 
-            int intensity(int sx, int sy) {
-                int val = content.Intensity(sx,sy);
-                int vres = val * (255 - standard.BlackLevel);
-                vres /= 255;
-                vres += standard.BlackLevel;
-                vres = vres > 255 ? 255 : Math.Max(standard.BlackLevel, vres);
-                return val == 0 ? standard.BlackLevel : vres;
+            private int LineBlockCount = 0;
+            private int LineCnt = 0;
+            private int CurrentLine;
+
+            public LineIterator(VideoStandard standard, IContent content) {
+                Standard = standard;
+                Content = content;
+                LineBlockCount = 0;
+                CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
             }
 
-            int x = 0, y = 0;
-            long time = 0, signalStart = 0;
-            long dt = (long)(ps/standard.Timing.BandwidthFreq);
-            var frameValues = new List<int>();
-            foreach (var block in standard.Blocks) {
-                y = block.sy;
-                for (int i = 0; i < block.Count; i++) {
-                    foreach (var signal in block.Signals) {
-                        x = 0;
-                        for (; time < signalStart + signal.Duration; time += dt) {
-                            frameValues.Add(signal.Value == 255 ? intensity(x,y) : signal.Value);
-                            x++;
-                        }
-                        signalStart += signal.Duration;
-                    }
-                    y += block.dy;
+            public bool HasNext() =>
+                LineBlockCount < Standard.LineBlocks.Length && LineCnt < Standard.LineBlocks[LineBlockCount].Count;
+
+            public byte[] GetNext() {
+                var output = Get();
+                Next();
+                return output;
+            }
+
+            private byte[] Get() {
+                var line = Standard.LineBlocks[LineBlockCount].LineSegments;
+                var pixelIterator = new PixelIterator(Content, line, CurrentLine, (long)(Standard.Timing.DotTime * 1e12), Standard.BlackLevel);
+
+                var output = new List<byte>();
+                while (pixelIterator.HasNext()) {
+                    output.Add(pixelIterator.GetNext());
+                }
+
+                return output.ToArray();
+            }
+
+            private void Next() {
+                CurrentLine += Standard.LineBlocks[LineBlockCount].dy;
+                LineCnt++;
+                if (LineCnt >= Standard.LineBlocks[LineBlockCount].Count) {
+                    LineCnt = 0;
+                    LineBlockCount++;
                 }
             }
-            return (frameValues, time / ps);
+        }
+
+        class PixelIterator {
+            private readonly IContent Content;
+            private readonly int BlackLevel;
+            private readonly VideoStandard _Standard;
+            private readonly VideoStandard.LineSegment[] Line;
+            private readonly int LineNumber;
+            private readonly long SampleTimePs;
+
+            long CurrentTimePs;
+            int LineSegmentCnt;
+            int xPos;
+
+            public PixelIterator(IContent content, VideoStandard.LineSegment[] line, int lineNumber, long sampleTimePs, int blackLevel) {
+                BlackLevel = blackLevel;
+                Content = content;
+                Line = line;
+                LineNumber = lineNumber;
+
+                LineSegmentCnt = 0;
+                CurrentTimePs = 0;
+                SampleTimePs = sampleTimePs;
+                xPos = 0;
+            }
+
+            public bool HasNext() =>
+                LineSegmentCnt < Line.Length && CurrentTimePs < Line[LineSegmentCnt].Duration;
+
+            public byte GetNext() {
+                byte value = Get();
+                Next();
+                return value;
+            }
+
+            private void Next() {
+                CurrentTimePs += SampleTimePs;
+                if (CurrentTimePs >= Line[LineSegmentCnt].Duration) {
+                    CurrentTimePs -= Line[LineSegmentCnt].Duration;
+                    LineSegmentCnt++;
+                }
+                xPos++;
+            }
+
+            private byte Get() {
+                byte intensity(int sx, int sy) {
+                    int val = Content.Intensity(sx, sy);
+                    int vres = val * (255 - BlackLevel);
+                    vres /= 255;
+                    vres += BlackLevel;
+                    vres = vres > 255 ? 255 : Math.Max(BlackLevel, vres);
+                    return val == 0 ? (byte)BlackLevel : (byte)vres;
+                }
+
+                var value = Line[LineSegmentCnt].Value;
+                return value == 255 ?  intensity(xPos, LineNumber) : value;
+            }
         }
     }
 }
