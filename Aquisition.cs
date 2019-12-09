@@ -3,13 +3,14 @@ using System;
 namespace CompositeVideoOscilloscope {
 
     public class Aquisition {
-        private readonly double[] Buffer1;
-        private readonly double[] Buffer2;
+        const int uV = (int)1e6; 
+        private readonly int[] Buffer1;
+        private readonly int[] Buffer2;
         private readonly double SampleTime;
         
         public Aquisition() {
-            Buffer1 = new double[1000];
-            Buffer2 = new double[1000];
+            Buffer1 = new int[1000];
+            Buffer2 = new int[1000];
             SampleTime = .1/Buffer1.Length;
         }
 
@@ -23,11 +24,11 @@ namespace CompositeVideoOscilloscope {
             }
         }
         
-        (double, double) Run(double currentTime, double[] buffer, Func<double, double> generate) {
+        (double, double) Run(double currentTime, int[] buffer, Func<double, double> generate) {
             var startTime=currentTime;
             double endTime = startTime;
             for (int idx=0; idx<buffer.Length; idx++) {
-                buffer[idx] = generate(endTime);
+                buffer[idx] = (int)(uV*generate(endTime));
                 endTime += SampleTime;
             }
             return (startTime, endTime);
