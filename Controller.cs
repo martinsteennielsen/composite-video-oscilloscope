@@ -13,7 +13,7 @@ namespace CompositeVideoOscilloscope {
                  VideoStandard = VideoStandard.Pal5MhzProgessiv,
                  PlotControls =  new PlotControls {  
                         NumberOfDivisions = 10, 
-                        Units =  (.005, 0.5), 
+                        Units =  (.005*1e9, 0.5), 
                         Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 } }
             };
 

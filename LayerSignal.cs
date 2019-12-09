@@ -16,9 +16,9 @@ namespace CompositeVideoOscilloscope {
             var divisionsPrQuadrant = controls.NumberOfDivisions/2;
 
             View = screen.SetView(
-                controls.Position.Time + sample.TriggerTime,
+                controls.Position.TimeNs + sample.TriggerTimeNs,
                 controls.Position.Voltage + controls.Units.Voltage * divisionsPrQuadrant,
-                sample.TriggerTime + controls.Position.Time + controls.Units.Time * controls.NumberOfDivisions,
+                sample.TriggerTimeNs + controls.Position.TimeNs + controls.Units.TimeNs * controls.NumberOfDivisions,
                 controls.Position.Voltage - controls.Units.Voltage * divisionsPrQuadrant, angle);
 
             (dT,dV) = (View.Width / (screen.Width*2), View.Height / (screen.Height*2));
@@ -61,9 +61,9 @@ namespace CompositeVideoOscilloscope {
 
         private bool TryGet(double t, ref double[] value) =>
             Sample.TryGet(t-d2T, out value[0]) &&
-            Sample.TryGet(t-dT, out value[1]) &&
+            Sample.TryGet(t -dT, out value[1]) &&
             Sample.TryGet(t, out value[2]) &&
-            Sample.TryGet(t+dT, out value[3]) &&
-            Sample.TryGet(t+d2T, out value[4]);
+            Sample.TryGet(t +dT, out value[3]) &&
+            Sample.TryGet(t +d2T, out value[4]);
     }
 }
