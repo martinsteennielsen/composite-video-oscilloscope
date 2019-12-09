@@ -2,24 +2,23 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class Sampling {
-        public readonly double StartTimeNs;
-        readonly double SampleDuration;
-        readonly double SampleTimeNs;
+        const int ns = (int)1e9;
+        readonly int SampleDuration;
+        readonly int SampleTimeNs;
         readonly double[] Buffer;
-        public readonly double TriggerTimeNs;
+        public readonly int TriggerTimeNs;
         public readonly SubSampleRender SubSamplePoints;
 
         public Sampling(double[] buffer, double startTime, double endTime, double sampleTime, PlotControls controls) {
             Buffer = buffer;
-            StartTimeNs = 1e9*startTime;
-            SampleDuration = 1e9*(endTime - startTime);
-            SampleTimeNs = 1e9*sampleTime;
+            SampleDuration = (int)(ns*(endTime - startTime));
+            SampleTimeNs = (int)(ns*sampleTime);
             TriggerTimeNs = RunTrigger(controls.Trigger);
             SubSamplePoints = controls.SubSamplePoints;
         }
 
-        double RunTrigger(TriggerControls trigger) {
-            double timeNs = SampleTimeNs;
+        int RunTrigger(TriggerControls trigger) {
+            int timeNs = SampleTimeNs;
             for (int idx=1; idx<Buffer.Length; idx++) {
                 double currentVoltage = Buffer[idx];
                 double lastVoltage = Buffer[idx-1];
@@ -29,7 +28,7 @@ namespace CompositeVideoOscilloscope {
                 if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > trigger.Edge) {
                     double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, trigger.Voltage);
                     if (double.IsInfinity(interpolatedTime)) { interpolatedTime = 0; }
-                    return interpolatedTime + timeNs - SampleTimeNs;
+                    return (int)(interpolatedTime + timeNs - SampleTimeNs);
                 }
                 timeNs += SampleTimeNs;
             }
@@ -42,7 +41,7 @@ namespace CompositeVideoOscilloscope {
         private double InterpolateVoltage(double v0, double  v1, double t) =>
             (1 - t) * v0 + t * v1;
         
-        public bool TryGet(double timeOffsetNs, out double value) {
+        public bool TryGet(int timeOffsetNs, out double value) {
             if (timeOffsetNs < 0) {
                 value = 0;
                 return false;
@@ -52,7 +51,7 @@ namespace CompositeVideoOscilloscope {
                 return false;
             }
             double offset = (timeOffsetNs / SampleTimeNs) % 1.0;
-            int bufpos = (int)(timeOffsetNs / SampleTimeNs);
+            int bufpos = (timeOffsetNs / SampleTimeNs);
             
             if (SubSamplePoints == SubSampleRender.ConnectStairs) {
                 value = Buffer[bufpos];

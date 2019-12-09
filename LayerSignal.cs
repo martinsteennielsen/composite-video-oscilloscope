@@ -60,10 +60,10 @@ namespace CompositeVideoOscilloscope {
             (dd && du && dl && dr) || !(dd || du || dl || dr) ? 0 : 1;
 
         private bool TryGet(double t, ref double[] value) =>
-            Sample.TryGet(t-d2T, out value[0]) &&
-            Sample.TryGet(t -dT, out value[1]) &&
-            Sample.TryGet(t, out value[2]) &&
-            Sample.TryGet(t +dT, out value[3]) &&
-            Sample.TryGet(t +d2T, out value[4]);
+            Sample.TryGet((int)(t-d2T), out value[0]) &&
+            Sample.TryGet((int)(t -dT), out value[1]) &&
+            Sample.TryGet((int)t, out value[2]) &&
+            Sample.TryGet((int)(t +dT), out value[3]) &&
+            Sample.TryGet((int)(t +d2T), out value[4]);
     }
 }
