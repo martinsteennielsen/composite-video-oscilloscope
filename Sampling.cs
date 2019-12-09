@@ -20,28 +20,27 @@ namespace CompositeVideoOscilloscope {
         int RunTrigger(TriggerControls trigger) {
             int timeNs = SampleTimeNs;
             for (int idx=1; idx<Buffer.Length; idx++) {
-                double currentVoltage = Buffer[idx];
-                double lastVoltage = Buffer[idx-1];
-                bool currentTrigger = currentVoltage > trigger.Voltage;
-                bool lastTrigger = lastVoltage > trigger.Voltage;
+                var currentVoltage = Buffer[idx];
+                var lastVoltage = Buffer[idx-1];
+                bool currentTrigger = currentVoltage > trigger.MikroVolt;
+                bool lastTrigger = lastVoltage > trigger.MikroVolt;
 
                 if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > trigger.Edge) {
-                    double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, trigger.Voltage);
-                    if (double.IsInfinity(interpolatedTime)) { interpolatedTime = 0; }
-                    return (int)(interpolatedTime + timeNs - SampleTimeNs);
+                    var interpolatedTime = lastVoltage + currentVoltage == 0 ? 0 : InterpolateTime(lastVoltage, currentVoltage, trigger.MikroVolt);
+                    return interpolatedTime + timeNs - SampleTimeNs;
                 }
                 timeNs += SampleTimeNs;
             }
             return 0;
         }
 
-        private double InterpolateTime(double v0, double v1, double vt) =>
-            SampleTimeNs * (vt - v0) / (v1 + v0);
+        private int InterpolateTime(int v0, int v1, int vt) =>
+            (SampleTimeNs*vt - SampleTimeNs*v0) / (v1 + v0);
 
-        private double InterpolateVoltage(double v0, double  v1, double t) =>
-            (1 - t) * v0 + t * v1;
+        private int InterpolateVoltage(int v0, int v1, int t) =>
+            ((1000 - t) * v0 + t * v1)/1000;
         
-        public bool TryGet(int timeOffsetNs, out double value) {
+        public bool TryGet(int timeOffsetNs, out int value) {
             if (timeOffsetNs < 0) {
                 value = 0;
                 return false;
@@ -50,16 +49,16 @@ namespace CompositeVideoOscilloscope {
                 value = 0;
                 return false;
             }
-            double offset = (timeOffsetNs / SampleTimeNs) % 1.0;
+            int offset = (timeOffsetNs / SampleTimeNs) % (int)1e3;
             int bufpos = (timeOffsetNs / SampleTimeNs);
             
             if (SubSamplePoints == SubSampleRender.ConnectStairs) {
-                value = Buffer[bufpos] / 1e6;
+                value = Buffer[bufpos];
             } else if (SubSamplePoints == SubSampleRender.ConnectLine ) {
-                value = InterpolateVoltage(Buffer[bufpos], Buffer[bufpos + 1], offset) / 1e6;
+                value = InterpolateVoltage(Buffer[bufpos], Buffer[bufpos + 1], offset);
             } else {
-                value = Buffer[bufpos]/1e6;
-                return offset<0.1;
+                value = Buffer[bufpos];
+                return offset<100;
             }
             return true;
         }

@@ -35,9 +35,12 @@ namespace CompositeVideoOscilloscope {
 
         public bool Visible(double x, double y) =>
             Clip.Visible(x,y);
-            
+
+        public (int x, int y) TransformI(int x, int y) =>
+            ((int)(x * Transformation[0] + y * Transformation[1] + Transformation[2]),(int)(x * Transformation[3] + y * Transformation[4] + Transformation[5]));
+        
         public (double x, double y) Transform(double x, double y) =>
-            ( x*Transformation[0] + y*Transformation[1] + Transformation[2], x*Transformation[3] + y*Transformation[4] + Transformation[5]  );
+            (x * Transformation[0] + y * Transformation[1] + Transformation[2], x * Transformation[3] + y * Transformation[4] + Transformation[5]);
 
         static double[] Scale(double sx, double sy) => 
             new double[] { sx, 0, 0,  0, sy, 0,  0, 0, 1 };

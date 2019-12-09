@@ -4,7 +4,7 @@ namespace CompositeVideoOscilloscope {
 
 
     public class TriggerControls {
-        public double Voltage;
+        public int MikroVolt;
         public double Edge;
     }
 
@@ -24,14 +24,14 @@ namespace CompositeVideoOscilloscope {
 
     public class PlotControls {
         public double NumberOfDivisions;
-        public (double Time, double Voltage) Offset;
-        public (double TimeNs, double Voltage) Units;
-        public (double TimeNs, double Voltage) Position;
+        public (double Time, double MicroVolt) Offset;
+        public (double TimeNs, double MicroVolt) Units;
+        public (double TimeNs, double MicroVolt) Position;
         public TriggerControls Trigger;
         public int IntensityAxis = 0x00;
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
-        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectStairs;
+        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectLine;
     }
     
 
