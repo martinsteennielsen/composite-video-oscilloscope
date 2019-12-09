@@ -3,7 +3,7 @@ using System;
 namespace CompositeVideoOscilloscope {
     public class Sampling {
         public readonly double StartTime;
-        readonly double EndTime;
+        readonly double SampleDuration;
         readonly double SampleTime;
         readonly double[] Buffer;
         public readonly double TriggerTime;
@@ -12,14 +12,14 @@ namespace CompositeVideoOscilloscope {
         public Sampling(double[] buffer, double startTime, double endTime, double sampleTime, PlotControls controls) {
             Buffer = buffer;
             StartTime = startTime;
-            EndTime = endTime;
+            SampleDuration = endTime - StartTime;
             SampleTime = sampleTime;
             TriggerTime = RunTrigger(controls.Trigger);
             SubSamplePoints = controls.SubSamplePoints;
         }
 
         double RunTrigger(TriggerControls trigger) {
-            double time = StartTime+SampleTime;
+            double time = SampleTime;
             for (int idx=1; idx<Buffer.Length; idx++) {
                 double currentVoltage = Buffer[idx];
                 double lastVoltage = Buffer[idx-1];
@@ -29,7 +29,7 @@ namespace CompositeVideoOscilloscope {
                 if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > trigger.Edge) {
                     double interpolatedTime = InterpolateTime(lastVoltage, currentVoltage, trigger.Voltage);
                     if (double.IsInfinity(interpolatedTime)) { interpolatedTime = 0; }
-                    return interpolatedTime + time - (SampleTime + StartTime);
+                    return interpolatedTime + time - SampleTime;
                 }
                 time += SampleTime;
             }
@@ -42,18 +42,17 @@ namespace CompositeVideoOscilloscope {
         private double InterpolateVoltage(double v0, double  v1, double t) =>
             (1 - t) * v0 + t * v1;
         
-        public bool TryGet(double time, out double value) {
-            if (time < StartTime) {
+        public bool TryGet(double timeOffset, out double value) {
+            if (timeOffset < 0) {
                 value = 0;
                 return false;
             }
-            if (time + SampleTime >= EndTime) {
+            if (timeOffset + SampleTime >= SampleDuration) {
                 value = 0;
                 return false;
             }
-            double timeDiff = time - StartTime;
-            double offset = (timeDiff/SampleTime) % 1.0;
-            int bufpos = (int)(timeDiff/SampleTime);
+            double offset = (timeOffset / SampleTime) % 1.0;
+            int bufpos = (int)(timeOffset / SampleTime);
             
             if (SubSamplePoints == SubSampleRender.ConnectStairs) {
                 value = Buffer[bufpos];
