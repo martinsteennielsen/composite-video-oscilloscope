@@ -6,11 +6,13 @@ using static CompositeVideoOscilloscope.VideoStandard;
 namespace CompositeVideoOscilloscope {
 
     public interface IContent {
-        int Intensity(int x, int y);
+        int Get();
+        void Next();
+        void NewLine(int currentLine);
     }
 
     public class VideoSignal {
-        public IEnumerable<IEnumerable<byte>> GenerateFrame(VideoStandard standard, ContentIterator content) {
+        public IEnumerable<IEnumerable<byte>> GenerateFrame(VideoStandard standard, IContent content) {
             var iterator = new LineIterator(standard, content);
             while (iterator.HasNext()) {
                 yield return iterator.GetNext();
@@ -20,14 +22,14 @@ namespace CompositeVideoOscilloscope {
         class LineIterator {
             const long ps = (long)1e12;
 
-            private readonly ContentIterator Content;
+            private readonly IContent Content;
             private readonly VideoStandard Standard;
 
             private int LineBlockCount = 0;
             private int LineCnt = 0;
             private int CurrentLine;
 
-            public LineIterator(VideoStandard standard, ContentIterator content) {
+            public LineIterator(VideoStandard standard, IContent content) {
                 Standard = standard;
                 CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
                 Content = content;
@@ -66,7 +68,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         class PixelIterator {
-            private readonly ContentIterator Content;
+            private readonly IContent Content;
             private readonly int BlackLevel;
             private readonly LineSegment[] LineSegments;
             private readonly long SampleTimePs;
@@ -74,7 +76,7 @@ namespace CompositeVideoOscilloscope {
             long CurrentTimePs;
             int LineSegmentCnt;
 
-            public PixelIterator(ContentIterator content, LineSegment[] lineSegments, long sampleTimePs, int blackLevel) {
+            public PixelIterator(IContent content, LineSegment[] lineSegments, long sampleTimePs, int blackLevel) {
                 BlackLevel = blackLevel;
                 Content = content;
                 LineSegments = lineSegments;
@@ -89,8 +91,10 @@ namespace CompositeVideoOscilloscope {
 
             public byte GetNext() {
                 byte value = Get();
+                if (LineSegments[LineSegmentCnt].Value == 255) {
+                    Content.Next();
+                }
                 Next();
-                Content.Next();
                 return value;
             }
 

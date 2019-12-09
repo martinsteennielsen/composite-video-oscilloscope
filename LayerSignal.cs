@@ -6,7 +6,10 @@ namespace CompositeVideoOscilloscope {
         private readonly Viewport View;
         private readonly Sampling Sample;
         private readonly double dT, dV, d2T, d2V;
+        private readonly (double X, double Y) Delta;
         
+        private (double X, double Y) Current = (0, 0);
+
         public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle, VideoStandard standard) {
             Sample = sample;
 
@@ -20,10 +23,22 @@ namespace CompositeVideoOscilloscope {
 
             (dT,dV) = (View.Width / (screen.Width*2), View.Height / (screen.Height*2));
             (d2T, d2V) = (2*dT, 2*dV);
+
+            var (doX, doY) = View.Transform(0, 0);
+            var (dX, dY) = View.Transform(1, 0);
+            Delta = (dX - doX, dY - doY);
         }
 
-        public int Intensity(int x, int y) =>
-            PixelValue( View.Transform(x,y) );
+        public void Next() {
+            Current.X += Delta.X;
+            Current.Y += Delta.Y;
+        }
+
+        public void NewLine(int lineNo) =>
+            Current = View.Transform(0, lineNo);
+
+        public int Intensity() =>
+            PixelValue( Current );
 
         private int PixelValue((double t, double v) position) {
             double[] sigbuf = new double[5]; 
