@@ -1,70 +1,113 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
 
     public class LayerSignal {
         private readonly Viewport View;
-        private readonly Sampling Sample;
-        private readonly int dV, d2V;
-        private readonly int dT, d2T;
-        private readonly (int X, int Y) Delta;
-
-        private (int X, int Y) Current = (0, 0);
+        private readonly SubSampleIterator Iterator;
 
         public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle, VideoStandard standard) {
-            Sample = sample;
-
-            var divisionsPrQuadrant = controls.NumberOfDivisions/2;
+            var divisionsPrQuadrant = controls.NumberOfDivisions / 2;
 
             View = screen.SetView(
                 controls.Position.TimeNs + sample.TriggerTimeNs,
                 controls.Position.MicroVolt + controls.Units.MicroVolt * divisionsPrQuadrant,
                 sample.TriggerTimeNs + controls.Position.TimeNs + controls.Units.TimeNs * controls.NumberOfDivisions,
-                controls.Position.MicroVolt - controls.Units.MicroVolt* divisionsPrQuadrant, angle);
+                controls.Position.MicroVolt - controls.Units.MicroVolt * divisionsPrQuadrant, angle);
 
-            (dT,dV) = ((int)(View.Width / (screen.Width*2)), (int)(View.Height / (screen.Height*2)));
-            (d2T, d2V) = (2*dT, 2*dV);
-
-            var (doX, doY) = View.TransformI(0, 0);
-            var (dX, dY) = View.TransformI(1, 0);
-            Delta = (dX - doX, dY - doY);
+            var delta = Sub(View.TransformD(1, 0), View.TransformD(0, 0));
+            Iterator = new SubSampleIterator(View, sample, delta);
         }
 
-        public void Next() {
-            Current.X += Delta.X;
-            Current.Y += Delta.Y;
-        }
+        (int, int) Sub((int, int) a, (int, int) b) =>
+            (a.Item1 - b.Item1, a.Item2 - b.Item2);
+
+        public void Next() =>
+            Iterator.Next();
 
         public void NewLine(int lineNo) =>
-            Current = View.TransformI(0, lineNo);
+            Iterator.NewLine(lineNo);
 
-        public int Intensity() =>
-            PixelValue( Current );
+        public int Get() =>
+            Iterator.Get() << 5;
 
-        private int PixelValue((int t, int v) position) {
-            int[] sigbuf = new int[5];
-            if (!TryGet(position.t, ref sigbuf)) { return 0x00; }
+        class SubSampleIterator {
+            private readonly Viewport View;
+            private readonly Sampling Sample;
+            private readonly (int, int) Delta;
 
-            int v = position.v;
-            int vu = v - dV, vuu = v - d2V, vd = v + dV, vdd = v + d2V;
-            bool dr = sigbuf[3] - v > 0, dd = sigbuf[2] - vd > 0, du = sigbuf[2] - vu > 0, dl = sigbuf[1] - v > 0;
+            public SubSampleIterator(Viewport view, Sampling sample, (int, int) delta) {
+                View = view;
+                Sample = sample;
+                Delta = delta;
+            }
 
-            int r = Pixel(dl, sigbuf[1] - vuu > 0, sigbuf[0] - vu > 0, du);
-            r += Pixel(dr, sigbuf[3] - vuu > 0, du, sigbuf[4] - vu > 0);
-            r += Pixel(sigbuf[1] - vdd > 0, dl, sigbuf[0] - vd > 0, dd);
-            r += Pixel(sigbuf[3] - vdd > 0, dr, dd, sigbuf[4] - vd > 0);
-            r += Pixel(dd, du, dl, dr)  << 2;
-            return r << 5;
+            public int Get() =>
+                Pixel(a + c + h + e) + 
+                Pixel(e + b + i + g) + 
+                Pixel(j + h + l + o) + 
+                Pixel(l + n + i + p) + 
+                (Pixel(d + f + k + m) << 2);
+
+            private int Pixel(int sumDelta) =>
+                sumDelta > 3 || sumDelta == -4 ? 0 : 1;
+
+            // 
+            //    a   b
+            //  c d e f g
+            //    h   i  
+            //  j k l m n
+            //    o   p  
+            // 
+
+            SampleIterator bI, fI, gI, iI, mI, nI, pI;
+            int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
+
+            public void NewLine(int lineNo) {
+                bI = new SampleIterator(Sample, View.TransformD(0.5, lineNo - 1), Delta);
+                fI = new SampleIterator(Sample, View.TransformD(0.5, lineNo - 0.5), Delta);
+                iI = new SampleIterator(Sample, View.TransformD(0.5, lineNo), Delta);
+                mI = new SampleIterator(Sample, View.TransformD(0.5, lineNo + .5), Delta);
+                pI = new SampleIterator(Sample, View.TransformD(0.5, lineNo + 1), Delta);
+                gI = new SampleIterator(Sample, View.TransformD(1, lineNo - 0.5), Delta);
+                nI = new SampleIterator(Sample, View.TransformD(1, lineNo + 0.5), Delta);
+            }
+
+            public void Next() {
+                a = b;
+                c = e; d = f; e = g;
+                h = i;
+                j = l; k = m; l = n;
+                o = p;
+                bI.Next(); b = bI.Get();
+                fI.Next(); f = fI.Get(); gI.Next(); g = gI.Get();
+                iI.Next(); i = iI.Get();
+                mI.Next(); m = mI.Get(); nI.Next(); n = nI.Get();
+                pI.Next(); p = pI.Get();
+            }
+
+            class SampleIterator {
+                readonly Sampling Sampling;
+                readonly (int t, int v) Delta;
+
+                (int t, int v) Current;
+
+                public SampleIterator(Sampling sampling, (int t, int v) start, (int t, int v) delta) {
+                    Delta = delta;
+                    Current = start;
+                    Sampling = sampling;
+                }
+
+                public void Next() {
+                    Current.t += Delta.t;
+                    Current.v += Delta.v;
+                }
+
+                public int Get() =>
+                    Sampling.TryGet(Current.t, out var sv) ? Math.Sign(sv - Current.v) : 8;
+
+            }
         }
-
-        private int Pixel(bool dd, bool du, bool dl, bool dr) =>
-            (dd && du && dl && dr) || !(dd || du || dl || dr) ? 0 : 1;
-
-        private bool TryGet(int t, ref int[] value) =>
-            Sample.TryGet(t - d2T, out value[0]) &&
-            Sample.TryGet(t - dT, out value[1]) &&
-            Sample.TryGet(t, out value[2]) &&
-            Sample.TryGet(t + dT, out value[3]) &&
-            Sample.TryGet(t + d2T, out value[4]);
     }
 }

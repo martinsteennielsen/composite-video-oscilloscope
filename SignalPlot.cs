@@ -35,7 +35,7 @@ namespace CompositeVideoOscilloscope {
 
         public int Intensity() {
             int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.Intensity());
-            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Intensity());
+            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Get());
         }
 
         int Blend(int intensityA, int intensityB, int alpha) => 

@@ -62,6 +62,5 @@ namespace CompositeVideoOscilloscope {
             }
             return true;
         }
-
-    } 
+    }
 }
