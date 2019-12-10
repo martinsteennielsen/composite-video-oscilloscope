@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
 
@@ -11,10 +10,10 @@ namespace CompositeVideoOscilloscope {
             var divisionsPrQuadrant = controls.NumberOfDivisions / 2;
 
             View = screen.SetView(
-                controls.Position.TimeNs + sample.TriggerTimeNs,
-                controls.Position.MicroVolt + controls.Units.MicroVolt * divisionsPrQuadrant,
-                sample.TriggerTimeNs + controls.Position.TimeNs + controls.Units.TimeNs * controls.NumberOfDivisions,
-                controls.Position.MicroVolt - controls.Units.MicroVolt * divisionsPrQuadrant, angle);
+                1e9 * controls.Position.Time + sample.TriggerTimeNs,
+                1e6*controls.Position.Voltage + 1e6*controls.Units.Voltage * divisionsPrQuadrant,
+                sample.TriggerTimeNs + 1e9*controls.Position.Time + 1e9 * controls.Units.Time * controls.NumberOfDivisions,
+                1e6*controls.Position.Voltage - 1e6*controls.Units.Voltage * divisionsPrQuadrant, angle);
 
             var delta = Sub(View.TransformD(1, 0), View.TransformD(0, 0));
             Iterator = new SubSampleIterator(View, sample, delta);

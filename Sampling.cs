@@ -19,14 +19,15 @@ namespace CompositeVideoOscilloscope {
 
         int RunTrigger(TriggerControls trigger) {
             int timeNs = SampleTimeNs;
+            int triggerVoltage = (int)(1e6 * trigger.Voltage);
             for (int idx=1; idx<Buffer.Length; idx++) {
                 var currentVoltage = Buffer[idx];
                 var lastVoltage = Buffer[idx-1];
-                bool currentTrigger = currentVoltage > trigger.MikroVolt;
-                bool lastTrigger = lastVoltage > trigger.MikroVolt;
+                bool currentTrigger = currentVoltage > triggerVoltage;
+                bool lastTrigger = lastVoltage > triggerVoltage;
 
                 if (currentTrigger && !lastTrigger && currentVoltage - lastVoltage > trigger.Edge) {
-                    var interpolatedTime = lastVoltage + currentVoltage == 0 ? 0 : InterpolateTime(lastVoltage, currentVoltage, trigger.MikroVolt);
+                    var interpolatedTime = lastVoltage + currentVoltage == 0 ? 0 : InterpolateTime(lastVoltage, currentVoltage, triggerVoltage);
                     return interpolatedTime + timeNs - SampleTimeNs;
                 }
                 timeNs += SampleTimeNs;
@@ -35,7 +36,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         private int InterpolateTime(int v0, int v1, int vt) =>
-            (SampleTimeNs*vt - SampleTimeNs*v0) / (v1 + v0);
+            (((vt - v0)<<8) / (v1 + v0)) >>8;
 
         private int InterpolateVoltage(int v0, int v1, int t) =>
             ((1000 - t) * v0 + t * v1)/1000;
