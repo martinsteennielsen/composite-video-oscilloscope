@@ -33,6 +33,7 @@ namespace CompositeVideoOscilloscope {
                 Standard = standard;
                 CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
                 Content = content;
+                Content.NewLine(CurrentLine);
                 LineBlockCount = 0;
             }
 
@@ -41,8 +42,11 @@ namespace CompositeVideoOscilloscope {
 
             public List<byte> GetNext() {
                 var output = Get();
+                var line = CurrentLine;
                 Next();
-                Content.NewLine(CurrentLine);
+                if (line != CurrentLine) {
+                    Content.NewLine(CurrentLine);
+                }
                 return output;
             }
 
