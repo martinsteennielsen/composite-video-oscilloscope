@@ -8,7 +8,7 @@ namespace CompositeVideoOscilloscope {
     public interface IContent {
         int Get();
         void Next();
-        void NewLine(int currentLine);
+        void Start(int currentLine);
     }
 
     public class VideoSignal {
@@ -33,7 +33,7 @@ namespace CompositeVideoOscilloscope {
                 Standard = standard;
                 CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
                 Content = content;
-                Content.NewLine(CurrentLine);
+                Content.Start(CurrentLine);
                 LineBlockCount = 0;
             }
 
@@ -45,7 +45,7 @@ namespace CompositeVideoOscilloscope {
                 var line = CurrentLine;
                 Next();
                 if (line != CurrentLine) {
-                    Content.NewLine(CurrentLine);
+                    Content.Start(CurrentLine);
                 }
                 return output;
             }

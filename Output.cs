@@ -1,11 +1,10 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CompositeVideoOscilloscope {
     public class Output : IDisposable {
+        public int NoOfBytes = 0;
         readonly PublisherSocket Publisher;
 
         public Output(string address) {
@@ -18,6 +17,7 @@ namespace CompositeVideoOscilloscope {
             msg.Append((long)sampleRate);
             msg.Append(values);
             Publisher.SendMultipartMessage(msg);
+            NoOfBytes += values.Length;
         }
 
         public void Dispose() {

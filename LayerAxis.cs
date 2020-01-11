@@ -23,7 +23,7 @@ namespace CompositeVideoOscilloscope {
             Current.Y += Delta.Y;
         }
 
-        public void NewLine(int lineNo) =>
+        public void Start(int lineNo) =>
             Current = View.Transform(0, lineNo);
 
         public int Intensity() =>

@@ -26,10 +26,10 @@ namespace CompositeVideoOscilloscope {
             (a.Item1 - b.Item1, a.Item2 - b.Item2);
 
         public void Next() =>
-            Iterator.GetNext();
+            Iterator.Next();
 
-        public void NewLine(int lineNo) =>
-            Iterator.NewLine(lineNo);
+        public void Start(int lineNo) =>
+            Iterator.Start(lineNo);
 
         public int Get() =>
             Iterator.Get() << 5;
@@ -66,7 +66,7 @@ namespace CompositeVideoOscilloscope {
             Iteration bI, fI, gI, iI, mI, nI, pI;
             int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
 
-            public void NewLine(int lineNo) {
+            public void Start(int lineNo) {
                 bI = Sample.StartIteration(View.TransformD(0.5, lineNo - 1), Delta);
                 fI = Sample.StartIteration(View.TransformD(0.5, lineNo - 0.5), Delta);
                 iI = Sample.StartIteration(View.TransformD(0.5, lineNo), Delta);
@@ -76,7 +76,7 @@ namespace CompositeVideoOscilloscope {
                 nI = Sample.StartIteration(View.TransformD(1, lineNo + 0.5), Delta);
             }
 
-            public void GetNext() {
+            public void Next() {
                 a = b;
                 c = e; d = f; e = g;
                 h = i;

@@ -1,7 +1,7 @@
 namespace CompositeVideoOscilloscope {
 
     public interface IClip {
-        bool Visible(double x, double y);
+        bool Visible(int x, int y);
     }
 
     public class ClipBox : IClip {
@@ -11,7 +11,7 @@ namespace CompositeVideoOscilloscope {
             Top = top; Left=left; Bottom = bottom; Right=right;
         }
 
-        public bool Visible(double x, double y) =>
+        public bool Visible(int x, int y) =>
             y>=Top && y<=Bottom && x >= Left && x <= Right;
     }
 
@@ -25,7 +25,7 @@ namespace CompositeVideoOscilloscope {
             RadiusYSquared=radiusY*radiusY;
         }
 
-        public bool Visible(double x, double y) =>
+        public bool Visible(int x, int y) =>
             ((x-CenterX)*(x-CenterX)/RadiusXSquared) + ((y-CenterY)*(y-CenterY) / RadiusYSquared)  < 1;
     }
 }

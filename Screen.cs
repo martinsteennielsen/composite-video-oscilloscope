@@ -42,9 +42,9 @@ namespace CompositeVideoOscilloscope {
             Plot2.Next();
         }
 
-        public void NewLine(int lineNo) {
-            Plot1.NewLine(lineNo);
-            Plot2.NewLine(lineNo);
+        public void Start(int lineNo) {
+            Plot1.Start(lineNo);
+            Plot2.Start(lineNo);
         }
 
         public int Get() =>

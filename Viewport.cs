@@ -33,7 +33,7 @@ namespace CompositeVideoOscilloscope {
             return new Viewport(viewLeft, viewTop, viewRight, viewBottom, Clip, newTransformation);
         }
 
-        public bool Visible(double x, double y) =>
+        public bool Visible(int x, int y) =>
             Clip.Visible(x,y);
 
         public (int x, int y) TransformI(int x, int y) =>

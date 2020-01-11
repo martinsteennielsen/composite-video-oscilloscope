@@ -19,15 +19,17 @@ namespace CompositeVideoOscilloscope {
 
         public void Next() {
             CurrentX++;
-            LayerAxis.Next();
-            LayerSignal.Next();
+            if (Visible()) {
+                LayerAxis.Next();
+                LayerSignal.Next();
+            }
         }
 
-        public void NewLine(int lineNo) {
+        public void Start(int lineNo) {
             CurrentX = 0;
             CurrentY = lineNo;
-            LayerAxis.NewLine(lineNo);
-            LayerSignal.NewLine(lineNo);
+            LayerAxis.Start(lineNo);
+            LayerSignal.Start(lineNo);
         }
 
         public bool Visible() =>
