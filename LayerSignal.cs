@@ -18,18 +18,18 @@ namespace CompositeVideoOscilloscope {
                 triggerTimeNs + 1e9*controls.Position.Time + 1e9 * controls.Units.Time * controls.NumberOfDivisions,
                 1e6*controls.Position.Voltage - 1e6*controls.Units.Voltage * divisionsPrQuadrant, angle);
 
-            var delta = Sub(View.TransformD(1, 0), View.TransformD(0, 0));
+            var delta = Subtract(View.TransformD(1, 0), View.TransformD(0, 0));
             Iterator = new SubSampleIterator(View, sample, delta);
         }
 
-        (int, int) Sub((int, int) a, (int, int) b) =>
+        (int, int) Subtract((int, int) a, (int, int) b) =>
             (a.Item1 - b.Item1, a.Item2 - b.Item2);
 
         public void Next() =>
             Iterator.Next();
 
-        public void Start(int lineNo) =>
-            Iterator.Start(lineNo);
+        public void Start(int startX, int startY) =>
+            Iterator.Start(startX,startY);
 
         public int Get() =>
             Iterator.Get() << 5;
@@ -45,6 +45,42 @@ namespace CompositeVideoOscilloscope {
                 Delta = delta;
             }
 
+            public void Start(int startX, int startY) {
+                iterB = Sample.CreateIterator(start: View.TransformD(startX+0.5, startY - 1), delta: Delta);
+                iterF = Sample.CreateIterator(start: View.TransformD(startX+0.5, startY - 0.5), delta: Delta);
+                iterI = Sample.CreateIterator(start: View.TransformD(startX+0.5, startY), delta: Delta);
+                iterM = Sample.CreateIterator(start: View.TransformD(startX+0.5, startY + 0.5), delta: Delta);
+                iterP = Sample.CreateIterator(start: View.TransformD(startX+0.5, startY + 1), delta: Delta);
+                iterG = Sample.CreateIterator(start: View.TransformD(startX+1,   startY - 0.5), delta: Delta);
+                iterN = Sample.CreateIterator(start: View.TransformD(startX+1,   startY + 0.5), delta: Delta);
+                a=b=c=d=e=f=g=h=i=j=k=l=m=n=o=p=8;
+            }
+
+            Iterator iterB, iterF, iterG, iterI, iterM, iterN, iterP;
+            int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
+
+            // 
+            //    a   b
+            //  c d e f g
+            //    h X i  
+            //  j k l m n
+            //    o   p  
+            // 
+            public void Next() {
+                a = b;
+                c = e; d = f; e = g;
+                h = i;
+                j = l; k = m; l = n;
+                o = p;
+                b = Sample.GetNext(iterB);
+                f = Sample.GetNext(iterF); 
+                g = Sample.GetNext(iterG);
+                i = Sample.GetNext(iterI);
+                m = Sample.GetNext(iterM); 
+                n = Sample.GetNext(iterN);
+                p = Sample.GetNext(iterP);
+            }
+
             public int Get() =>
                 Pixel(a + c + h + e) + 
                 Pixel(e + b + i + g) + 
@@ -55,41 +91,6 @@ namespace CompositeVideoOscilloscope {
             private byte Pixel(int sumDelta) =>
                 sumDelta > 3 || sumDelta == -4 ? (byte)0 : (byte)1;
 
-            // 
-            //    a   b
-            //  c d e f g
-            //    h   i  
-            //  j k l m n
-            //    o   p  
-            // 
-
-            Iteration bI, fI, gI, iI, mI, nI, pI;
-            int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
-
-            public void Start(int lineNo) {
-                bI = Sample.StartIteration(View.TransformD(0.5, lineNo - 1), Delta);
-                fI = Sample.StartIteration(View.TransformD(0.5, lineNo - 0.5), Delta);
-                iI = Sample.StartIteration(View.TransformD(0.5, lineNo), Delta);
-                mI = Sample.StartIteration(View.TransformD(0.5, lineNo + .5), Delta);
-                pI = Sample.StartIteration(View.TransformD(0.5, lineNo + 1), Delta);
-                gI = Sample.StartIteration(View.TransformD(1, lineNo - 0.5), Delta);
-                nI = Sample.StartIteration(View.TransformD(1, lineNo + 0.5), Delta);
-            }
-
-            public void Next() {
-                a = b;
-                c = e; d = f; e = g;
-                h = i;
-                j = l; k = m; l = n;
-                o = p;
-                b = Sample.GetNext(bI);
-                f = Sample.GetNext(fI); 
-                g = Sample.GetNext(gI);
-                i = Sample.GetNext(iI);
-                m = Sample.GetNext(mI); 
-                n = Sample.GetNext(nI);
-                p = Sample.GetNext(pI);
-            }
         }
     }
 }

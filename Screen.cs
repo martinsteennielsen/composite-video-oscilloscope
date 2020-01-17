@@ -28,40 +28,53 @@ namespace CompositeVideoOscilloscope {
             );
 
     }
+    public interface IIterator {
+        int GetNext();
+    }
+
+    class ZeroIterator : IIterator {
+        public int GetNext() => 0;
+    }
 
     class FrameContent : IContent {
         readonly SignalPlot Plot1, Plot2;
+        readonly IIterator ZeroIterator = new ZeroIterator();
+
+        int CurrentX, CurrentY;
+        IIterator Plot1Iterator, Plot2Iterator; 
 
         public FrameContent(SignalPlot plot1, SignalPlot plot2) {
             Plot1 = plot1;
             Plot2 = plot2;
+            Plot1Iterator = Plot2Iterator = ZeroIterator;
         }
 
         public void Next() {
-            Plot1.Next();
-            Plot2.Next();
+            CurrentX++;
+            var visible1 = Plot1.Visible(CurrentX, CurrentY);
+            var visible2 = Plot2.Visible(CurrentX, CurrentY);
+
+            if (visible1 && Plot1Iterator == ZeroIterator) {
+                Plot1Iterator = Plot1.Start(CurrentX, CurrentY);
+            } else if (!visible1 && Plot1Iterator != ZeroIterator) {
+                Plot1Iterator = ZeroIterator;
+            }
+            if (visible2 && Plot2Iterator == ZeroIterator) {
+                Plot2Iterator = Plot2.Start(CurrentX, CurrentY);
+            } else if (!visible2 && Plot2Iterator != ZeroIterator) {
+                Plot2Iterator = ZeroIterator;
+            }
         }
 
         public void Start(int lineNo) {
-            Plot1.Start(lineNo);
-            Plot2.Start(lineNo);
+            CurrentY=lineNo;
+            CurrentX=0;
         }
 
         public int Get() =>
-            Intensity();
-
-        private int Intensity() {
-            if (!Plot1.Visible() && !Plot2.Visible()) {
-                return 0x00;
-            }
-            if (Plot1.Visible() && Plot2.Visible()) {
-                return Blend(Plot1.Intensity(), Plot2.Intensity(), 50);
-            }
-            if (Plot2.Visible()) {
-                return Plot2.Intensity();
-            }
-            return Plot1.Intensity();
-        }
+            Plot1Iterator == ZeroIterator 
+            ? Plot2Iterator.GetNext()
+            : Blend(Plot1Iterator.GetNext(), Plot2Iterator.GetNext(), 50);
 
         private int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;

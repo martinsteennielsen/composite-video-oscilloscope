@@ -6,42 +6,49 @@ namespace CompositeVideoOscilloscope {
         readonly LayerAxis LayerAxis;
         readonly PlotControls Controls;
 
-        private int CurrentX, CurrentY;
-
         public SignalPlot(LocationControls pos, PlotControls controls, VideoStandard standard, Sampling sampling) {
             Viewport = new Viewport(standard.VisibleWidth * pos.Left, standard.VisibleHeight * pos.Top, standard.VisibleWidth * pos.Right, standard.VisibleHeight * pos.Bottom);
             LayerSignal =  new LayerSignal(Viewport, sampling, controls, pos.Angle, standard);
             LayerAxis =  new LayerAxis(Viewport, controls.NumberOfDivisions, pos.Angle);
             Controls = controls;
-            CurrentX = CurrentY = 0;
         }
 
+        public bool Visible(int x, int y) =>
+            Viewport.Visible(x,y);
 
-        public void Next() {
-            CurrentX++;
-            if (Visible()) {
-                LayerAxis.Next();
-                LayerSignal.Next();
+        public IIterator CreateIterator(int x, int y) =>
+            new PlotIterator(Controls, LayerAxis, LayerSignal, x, y);
+
+
+        class PlotIterator : IIterator {
+            readonly LayerAxis Axis;
+            readonly LayerSignal Signal;
+            readonly PlotControls Controls;
+
+            public PlotIterator(PlotControls controls, LayerAxis axis, LayerSignal signal, int x, int y) {
+                Axis = axis;
+                Signal = signal;
+                Controls = controls; 
+                Axis.Start(x,y);
+                Signal.Start(x,y);
             }
+
+            int Blend(int intensityA, int intensityB, int alpha) => 
+                intensityA + ((intensityB - intensityA)*alpha)/0xFF;
+
+            int Get() {
+                int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: Axis.Get());
+                return Blend(intensityAxis, Controls.IntensitySignal, alpha: Signal.Get());
+            }
+
+            public int GetNext() {
+                var current = Get();
+                Signal.Next();
+                Axis.Next();
+                return current;
+            }
+
         }
-
-        public void Start(int lineNo) {
-            CurrentX = 0;
-            CurrentY = lineNo;
-            LayerAxis.Start(lineNo);
-            LayerSignal.Start(lineNo);
-        }
-
-        public bool Visible() =>
-            Viewport.Visible(CurrentX,CurrentY);
-
-        public int Intensity() {
-            int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.Intensity());
-            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Get());
-        }
-
-        int Blend(int intensityA, int intensityB, int alpha) => 
-            intensityA + ((intensityB - intensityA)*alpha)/0xFF;
 
     }
 }

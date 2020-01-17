@@ -40,5 +40,7 @@ namespace CompositeVideoOscilloscope {
         public double CurrentTime;
         public int BytesGenerated;
         public PlotControls PlotControls;
+        public double BitsPrSecond => CurrentTime == 0 ? 0  : BytesGenerated / CurrentTime * 1e-6;
+
     }
 }

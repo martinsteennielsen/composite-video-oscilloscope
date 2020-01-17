@@ -14,8 +14,9 @@ namespace CompositeVideoOscilloscope {
     public class VideoSignal {
         public IEnumerable<IEnumerable<byte>> GenerateFrame(VideoStandard standard, IContent content) {
             var iterator = new LineIterator(standard, content);
-            while (iterator.HasNext()) {
-                yield return iterator.GetNext();
+            while (!iterator.Completed) {
+                yield return iterator.Get();
+                iterator.Next();
             }
         }
 
@@ -33,35 +34,25 @@ namespace CompositeVideoOscilloscope {
                 Standard = standard;
                 CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
                 Content = content;
-                Content.Start(CurrentLine);
                 LineBlockCount = 0;
             }
 
-            public bool HasNext() =>
-                LineBlockCount < Standard.LineBlocks.Length && LineCnt < Standard.LineBlocks[LineBlockCount].Count;
+            public bool Completed =>
+                !(LineBlockCount < Standard.LineBlocks.Length && LineCnt < Standard.LineBlocks[LineBlockCount].Count);
 
-            public List<byte> GetNext() {
-                var output = Get();
-                var line = CurrentLine;
-                Next();
-                if (line != CurrentLine) {
-                    Content.Start(CurrentLine);
-                }
-                return output;
-            }
-
-            private List<byte> Get() {
+            public List<byte> Get() {
                 var lineSegments = Standard.LineBlocks[LineBlockCount].LineSegments;
-                var pixelIterator = new PixelIterator(Content, lineSegments, (long)(ps * Standard.Timing.DotTime), Standard.BlackLevel);
+                var pixelIterator = new PixelIterator(Content, lineSegments, (long)(ps * Standard.Timing.DotTime), Standard.BlackLevel, CurrentLine);
 
                 var output = new List<byte>(320);
-                while (pixelIterator.HasNext()) {
-                    output.Add(pixelIterator.GetNext());
+                while (!pixelIterator.Completed) {
+                    output.Add(pixelIterator.Get());
+                    pixelIterator.Next();
                 }
                 return output;
             }
 
-            private void Next() {
+            public void Next() {
                 CurrentLine += Standard.LineBlocks[LineBlockCount].dy;
                 LineCnt++;
                 if (LineCnt >= Standard.LineBlocks[LineBlockCount].Count) {
@@ -80,9 +71,10 @@ namespace CompositeVideoOscilloscope {
             long CurrentTimePs;
             int LineSegmentCnt;
 
-            public PixelIterator(IContent content, LineSegment[] lineSegments, long sampleTimePs, int blackLevel) {
+            public PixelIterator(IContent content, LineSegment[] lineSegments, long sampleTimePs, int blackLevel, int lineNumber) {
                 BlackLevel = blackLevel;
                 Content = content;
+                Content.Start(lineNumber);
                 LineSegments = lineSegments;
 
                 LineSegmentCnt = 0;
@@ -90,27 +82,21 @@ namespace CompositeVideoOscilloscope {
                 SampleTimePs = sampleTimePs;
             }
 
-            public bool HasNext() =>
-                LineSegmentCnt < LineSegments.Length && CurrentTimePs < LineSegments[LineSegmentCnt].Duration;
+            public bool Completed =>
+                !(LineSegmentCnt < LineSegments.Length && CurrentTimePs < LineSegments[LineSegmentCnt].Duration);
 
-            public byte GetNext() {
-                byte value = Get();
+            public void Next() {
+                CurrentTimePs += SampleTimePs;
                 if (LineSegments[LineSegmentCnt].Value == 255) {
                     Content.Next();
                 }
-                Next();
-                return value;
-            }
-
-            private void Next() {
-                CurrentTimePs += SampleTimePs;
                 if (CurrentTimePs >= LineSegments[LineSegmentCnt].Duration) {
                     CurrentTimePs -= LineSegments[LineSegmentCnt].Duration;
                     LineSegmentCnt++;
                 }
             }
 
-            private byte Get() {
+            public byte Get() {
                 byte intensity() {
                     int val = Content.Get();
                     int vres = val * (255 - BlackLevel);

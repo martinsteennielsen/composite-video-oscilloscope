@@ -24,20 +24,20 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task<Controls> Run() {
-            Report();
             await Task.Yield();
             var currentTime = Stopwatch.Elapsed.TotalSeconds;
             // var elapsedTime = Controls.VideoStandard.Timing.FrameTime; //currentTime - Controls.CurrentTime;
             var elapsedTime = currentTime - Controls.CurrentTime;
             Controls.CurrentTime = currentTime;
             Movements.Run(Controls, elapsedTime);
+            Report();
             return Controls;
         }
 
-        private void Report() {
-            var row = Console.CursorTop;
-            Console.WriteLine($"{(Controls.BytesGenerated / Controls.CurrentTime * 1e-6):F3} Mb/s\n");
-            Console.SetCursorPosition(0, row);
+        private void Report()
+        {
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine($"{Controls.BitsPrSecond:F3} Mb/s ");
         }
     }
 }

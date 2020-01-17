@@ -36,81 +36,58 @@ namespace CompositeVideoOscilloscope {
         private int InterpolateTime(int v0, int v1, int vt) =>
             (((vt - v0)<<8) / (v1 + v0)) >>8;
 
-        public Iteration StartIteration((int t, int v) start, (int t, int v) delta) {
-            Iteration iter = new Iteration {
-                CurBufPos = start.t / SampleTimeNs,
-                CurBufPosFraction = start.t % SampleTimeNs,
+        public Iterator CreateIterator((int t, int v) start, (int t, int v) delta) {
+            var deltaMod =  delta.t % SampleTimeNs;
+            var startFrac = Math.Abs(start.t % SampleTimeNs);
+            Iterator iter = new Iterator {
+                BufPos = start.t / SampleTimeNs,
                 DeltaBufPos = (delta.t / SampleTimeNs),
-                DeltaBufPosFraction = delta.t % SampleTimeNs,
+                DeltaDivisor = Math.Abs(deltaMod),
+                DeltaDivisorOverrun = deltaMod > 0 ? 1 : -1,
+                Divisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac,
                 DeltaScreenVoltage = delta.v,
-                CurScreenVoltage = start.v,
-                CurSampleVoltage = 0,
-                CurValue = 8
+                ScreenVoltage = start.v,
+                SampleVoltage = 0,
+                CurrentValue = 8,
             };
-            
-            if (iter.CurBufPos >= 0 && iter.CurBufPos < Buffer.Length) {
-                iter.CurSampleVoltage = Buffer[iter.CurBufPos];
-                iter.CurValue = iter.CurScreenVoltage > iter.CurSampleVoltage ? 1 : -1;
+            if (iter.BufPos >= 0 && iter.BufPos < Buffer.Length) {
+                iter.SampleVoltage = Buffer[iter.BufPos];
+                iter.CurrentValue = iter.ScreenVoltage > iter.SampleVoltage ? 1 : -1;
             }
             return iter;
         }
 
-        public int GetNext(Iteration iter) =>
-            iter.DeltaBufPosFraction > 0 ? NextRight(iter) : NextLeft(iter);
+        public int GetNext(Iterator iter) {
 
-        int NextRight(Iteration iter) {
-            iter.CurScreenVoltage += iter.DeltaScreenVoltage;
             var delta = iter.DeltaBufPos;
-            iter.CurBufPosFraction += iter.DeltaBufPosFraction;
-            if (iter.CurBufPosFraction >= SampleTimeNs) {
-                delta++;
-                iter.CurBufPosFraction -= SampleTimeNs;
+            iter.Divisor -= iter.DeltaDivisor;
+            if (iter.Divisor <= 0) {
+                iter.Divisor += SampleTimeNs;
+                delta+=iter.DeltaDivisorOverrun;
             }
-            if (delta != 0) {
-                iter.CurBufPos += delta;
-                if (iter.CurBufPos >= 0 && iter.CurBufPos < Buffer.Length) {
-                    iter.CurSampleVoltage = Buffer[iter.CurBufPos];
-                    iter.CurValue = iter.CurScreenVoltage > iter.CurSampleVoltage ? 1 : -1;
-                } else {
-                    iter.CurValue = 8;
-                }
+            iter.BufPos += delta;
+            
+            iter.ScreenVoltage += iter.DeltaScreenVoltage;
+            if (iter.BufPos >= 0 && iter.BufPos < Buffer.Length) {
+                iter.SampleVoltage = Buffer[iter.BufPos];
+                iter.CurrentValue = iter.ScreenVoltage > iter.SampleVoltage ? 1 : -1;
             } else {
-                iter.CurValue = iter.CurScreenVoltage > iter.CurSampleVoltage ? 1 : -1;
+                iter.CurrentValue = 8;
             }
-            return iter.CurValue;
+            return iter.CurrentValue;
         }
 
-        int NextLeft(Iteration iter) {
-            iter.CurScreenVoltage += iter.DeltaScreenVoltage;
-            var delta = iter.DeltaBufPos;
-            iter.CurBufPosFraction += iter.DeltaBufPosFraction;
-            if (iter.CurBufPosFraction <= 0) {
-                delta--;
-                iter.CurBufPosFraction += SampleTimeNs;
-            }
-            if (delta != 0) {
-                iter.CurBufPos += delta;
-                if (iter.CurBufPos >= 0 && iter.CurBufPos < Buffer.Length) {
-                    iter.CurSampleVoltage = Buffer[iter.CurBufPos];
-                    iter.CurValue = iter.CurScreenVoltage > iter.CurSampleVoltage ? 1 : -1;
-                } else {
-                    iter.CurValue = 8;
-                }
-            } else {
-                iter.CurValue = iter.CurScreenVoltage > iter.CurSampleVoltage ? 1 : -1;
-            }
-            return iter.CurValue;
-        }
-
-        public class Iteration {
+        public class Iterator {
             public int DeltaBufPos;
-            public int DeltaBufPosFraction;
+            public int DeltaDivisorOverrun;
+            public int Divisor;
+            public int DeltaDivisor;
             public int DeltaScreenVoltage;
-            public int CurBufPosFraction;
-            public int CurBufPos;
-            public int CurScreenVoltage;
-            public int CurSampleVoltage;
-            public int CurValue;
+            public int BufPos;
+            public int ScreenVoltage;
+            public int SampleVoltage;
+            public int CurrentValue;
+
         }
     }
 }
