@@ -55,12 +55,12 @@ namespace CompositeVideoOscilloscope {
             var visible2 = Plot2.Visible(CurrentX, CurrentY);
 
             if (visible1 && Plot1Iterator == ZeroIterator) {
-                Plot1Iterator = Plot1.Start(CurrentX, CurrentY);
+                Plot1Iterator = Plot1.CreateIterator(CurrentX, CurrentY);
             } else if (!visible1 && Plot1Iterator != ZeroIterator) {
                 Plot1Iterator = ZeroIterator;
             }
             if (visible2 && Plot2Iterator == ZeroIterator) {
-                Plot2Iterator = Plot2.Start(CurrentX, CurrentY);
+                Plot2Iterator = Plot2.CreateIterator(CurrentX, CurrentY);
             } else if (!visible2 && Plot2Iterator != ZeroIterator) {
                 Plot2Iterator = ZeroIterator;
             }
