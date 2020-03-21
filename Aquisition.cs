@@ -1,6 +1,8 @@
 using System;
+using static CompositeVideoOscilloscope.SamplingI;
 
 namespace CompositeVideoOscilloscope {
+
 
     public class Aquisition {
         const int uV = (int)1e6; 
