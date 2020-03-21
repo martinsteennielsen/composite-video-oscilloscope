@@ -3,9 +3,6 @@ using System.Collections.Generic;
 
 namespace CompositeVideoOscilloscope {
 
-    using static SignalPlotI;
-    using static FrameContentI;
-
     public class Screen {
         readonly Controls Controls;
         readonly Aquisition Aquisition;
@@ -31,47 +28,43 @@ namespace CompositeVideoOscilloscope {
 
     }
 
-    public class FrameContentI {
-        int CurrentX, CurrentY;
-        SignalPlotI Plot1I, Plot2I;
+    public class FrameContent {
+        readonly SignalPlot Plot1, Plot2;
+        readonly PlotIterator ZeroPlot = new PlotIterator();
 
-        public class FrameContent {
-            readonly SignalPlot Plot1, Plot2;
-            readonly SignalPlotI ZeroPlot = new SignalPlotI();
-
-            public FrameContent(SignalPlot plot1, SignalPlot plot2) {
-                Plot1 = plot1;
-                Plot2 = plot2;
-            }
-
-            public void Next(FrameContentI iter) {
-                iter.CurrentX++;
-                var visible1 = Plot1.Visible(iter.CurrentX, iter.CurrentY);
-                var visible2 = Plot2.Visible(iter.CurrentX, iter.CurrentY);
-
-                if (visible1 && iter.Plot1I == ZeroPlot) {
-                    iter.Plot1I = Plot1.CreateIterator(iter.CurrentX, iter.CurrentY);
-                } else if (!visible1 && iter.Plot1I != ZeroPlot) {
-                    iter.Plot1I = ZeroPlot;
-                }
-                if (visible2 && iter.Plot2I == ZeroPlot) {
-                    iter.Plot2I = Plot2.CreateIterator(iter.CurrentX, iter.CurrentY);
-                } else if (!visible2 && iter.Plot2I != ZeroPlot) {
-                    iter.Plot2I = ZeroPlot;
-                }
-            }
-
-            public FrameContentI Start(int lineNo) =>
-                new FrameContentI { CurrentY = lineNo, CurrentX = 0, Plot1I = ZeroPlot, Plot2I = ZeroPlot };
-
-            public int Get(FrameContentI iter) =>
-                iter.Plot1I == ZeroPlot && iter.Plot2I == ZeroPlot ? 0
-                : iter.Plot1I == ZeroPlot ? Plot2.GetNext(iter.Plot2I)
-                : iter.Plot2I == ZeroPlot ? Plot1.GetNext(iter.Plot1I)
-                : Blend(Plot1.GetNext(iter.Plot1I), Plot2.GetNext(iter.Plot2I), 50);
-
-            private int Blend(int intensityA, int intensityB, int alpha) =>
-                intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
+        public FrameContent(SignalPlot plot1, SignalPlot plot2) {
+            Plot1 = plot1;
+            Plot2 = plot2;
         }
+
+        public void Next(ContentIterator iter) {
+            iter.CurrentX++;
+            var visible1 = Plot1.Visible(iter.CurrentX, iter.CurrentY);
+            var visible2 = Plot2.Visible(iter.CurrentX, iter.CurrentY);
+
+            if (visible1 && iter.Plot1 == ZeroPlot) {
+                iter.Plot1 = Plot1.Start(iter.CurrentX, iter.CurrentY);
+            } else if (!visible1 && iter.Plot1 != ZeroPlot) {
+                iter.Plot1 = ZeroPlot;
+            }
+            if (visible2 && iter.Plot2 == ZeroPlot) {
+                iter.Plot2 = Plot2.Start(iter.CurrentX, iter.CurrentY);
+            } else if (!visible2 && iter.Plot2 != ZeroPlot) {
+                iter.Plot2 = ZeroPlot;
+            }
+        }
+
+        public ContentIterator Start(int lineNo) =>
+            new ContentIterator { CurrentY = lineNo, CurrentX = 0, Plot1 = ZeroPlot, Plot2 = ZeroPlot };
+
+        public int Get(ContentIterator iter) =>
+            iter.Plot1 == ZeroPlot && iter.Plot2 == ZeroPlot ? 0
+            : iter.Plot1 == ZeroPlot ? Plot2.GetNext(iter.Plot2)
+            : iter.Plot2 == ZeroPlot ? Plot1.GetNext(iter.Plot1)
+            : Blend(Plot1.GetNext(iter.Plot1), Plot2.GetNext(iter.Plot2), 50);
+
+        private int Blend(int intensityA, int intensityB, int alpha) =>
+            intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
     }
 }
+

@@ -1,5 +1,5 @@
 using System;
-using static CompositeVideoOscilloscope.SamplingI;
+using static CompositeVideoOscilloscope.SamplingIterator;
 
 namespace CompositeVideoOscilloscope {
 
