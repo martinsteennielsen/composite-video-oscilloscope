@@ -5,100 +5,107 @@ using static CompositeVideoOscilloscope.VideoStandard;
 
 namespace CompositeVideoOscilloscope {
 
-    public interface IContent {
-        int Get();
-        void Next();
-        void Start(int currentLine);
-    }
+    using static FrameContentI;
+    using static PixelsI;
+    using static LinesI;
 
     public class VideoSignal {
-        public IEnumerable<IEnumerable<byte>> GenerateFrame(VideoStandard standard, IContent content) {
-            var iterator = new LineIterator(standard, content);
-            while (!iterator.Completed) {
-                yield return iterator.Get();
-                iterator.Next();
+
+        public IEnumerable<IEnumerable<byte>> GenerateFrame(VideoStandard standard, FrameContent content) {
+            var lines = new Lines(standard, content);
+
+            var iter = lines.Start();
+            while (!lines.Completed(iter)) {
+                yield return lines.Get(iter);
+                lines.Next(iter);
             }
         }
 
-        class LineIterator {
+    }
+
+    public class LinesI {
+        private int LineBlockCount = 0;
+        private int LineCnt = 0;
+        private int CurrentLine;
+        private PixelsI PixelI;
+
+        public class Lines {
             const long ps = (long)1e12;
 
-            private readonly IContent Content;
+            private readonly FrameContent Content;
             private readonly VideoStandard Standard;
+            private readonly Pixels Pixels;
 
-            private int LineBlockCount = 0;
-            private int LineCnt = 0;
-            private int CurrentLine;
-
-            public LineIterator(VideoStandard standard, IContent content) {
+            public Lines(VideoStandard standard, FrameContent content) {
                 Standard = standard;
-                CurrentLine = Standard.LineBlocks[LineBlockCount].sy;
                 Content = content;
-                LineBlockCount = 0;
+                Pixels = new Pixels(content, (long)(ps * Standard.Timing.DotTime), Standard.BlackLevel);
             }
 
-            public bool Completed =>
-                !(LineBlockCount < Standard.LineBlocks.Length && LineCnt < Standard.LineBlocks[LineBlockCount].Count);
+            public LinesI Start() =>
+                new LinesI { CurrentLine = Standard.LineBlocks[0].sy, LineCnt = 0, LineBlockCount = 0, PixelI = Pixels.Start(0, Standard.LineBlocks[0].LineSegments) };
 
-            public List<byte> Get() {
-                var lineSegments = Standard.LineBlocks[LineBlockCount].LineSegments;
-                var pixelIterator = new PixelIterator(Content, lineSegments, (long)(ps * Standard.Timing.DotTime), Standard.BlackLevel, CurrentLine);
+            public bool Completed(LinesI iter) =>
+                !(iter.LineBlockCount < Standard.LineBlocks.Length && iter.LineCnt < Standard.LineBlocks[iter.LineBlockCount].Count);
 
+            public List<byte> Get(LinesI iter) {
                 var output = new List<byte>(320);
-                while (!pixelIterator.Completed) {
-                    output.Add(pixelIterator.Get());
-                    pixelIterator.Next();
+                while (!Pixels.Completed(iter.PixelI)) {
+                    output.Add(Pixels.Get(iter.PixelI));
+                    Pixels.Next(iter.PixelI);
                 }
                 return output;
             }
 
-            public void Next() {
-                CurrentLine += Standard.LineBlocks[LineBlockCount].dy;
-                LineCnt++;
-                if (LineCnt >= Standard.LineBlocks[LineBlockCount].Count) {
-                    LineCnt = 0;
-                    LineBlockCount++;
+            public void Next(LinesI iter) {
+                iter.CurrentLine += Standard.LineBlocks[iter.LineBlockCount].dy;
+                iter.LineCnt++;
+                iter.PixelI = Pixels.Start(iter.CurrentLine, Standard.LineBlocks[iter.LineBlockCount].LineSegments);
+                if (iter.LineCnt >= Standard.LineBlocks[iter.LineBlockCount].Count) {
+                    iter.LineCnt = 0;
+                    iter.LineBlockCount++;
                 }
             }
         }
+    }
 
-        class PixelIterator {
-            private readonly IContent Content;
+    public class PixelsI {
+        long CurrentTimePs;
+        int LineSegmentCnt;
+        FrameContentI ContentI;
+        LineSegment[] LineSegments;
+
+        public class Pixels {
+            private readonly FrameContent Content;
             private readonly int BlackLevel;
-            private readonly LineSegment[] LineSegments;
             private readonly long SampleTimePs;
 
-            long CurrentTimePs;
-            int LineSegmentCnt;
-
-            public PixelIterator(IContent content, LineSegment[] lineSegments, long sampleTimePs, int blackLevel, int lineNumber) {
+            public Pixels(FrameContent content, long sampleTimePs, int blackLevel) {
                 BlackLevel = blackLevel;
                 Content = content;
-                Content.Start(lineNumber);
-                LineSegments = lineSegments;
-
-                LineSegmentCnt = 0;
-                CurrentTimePs = 0;
                 SampleTimePs = sampleTimePs;
             }
 
-            public bool Completed =>
-                !(LineSegmentCnt < LineSegments.Length && CurrentTimePs < LineSegments[LineSegmentCnt].Duration);
+            public PixelsI Start(int lineNo, LineSegment[] lineSegments) =>
+                new PixelsI { LineSegments = lineSegments, CurrentTimePs = 0, LineSegmentCnt = 0, ContentI = Content.Start(lineNo) };
 
-            public void Next() {
-                CurrentTimePs += SampleTimePs;
-                if (LineSegments[LineSegmentCnt].Value == 255) {
-                    Content.Next();
+            public bool Completed(PixelsI iter) =>
+                !(iter.LineSegmentCnt < iter.LineSegments.Length && iter.CurrentTimePs < iter.LineSegments[iter.LineSegmentCnt].Duration);
+
+            public void Next(PixelsI iter) {
+                iter.CurrentTimePs += SampleTimePs;
+                if (iter.LineSegments[iter.LineSegmentCnt].Value == 255) {
+                    Content.Next(iter.ContentI);
                 }
-                if (CurrentTimePs >= LineSegments[LineSegmentCnt].Duration) {
-                    CurrentTimePs -= LineSegments[LineSegmentCnt].Duration;
-                    LineSegmentCnt++;
+                if (iter.CurrentTimePs >= iter.LineSegments[iter.LineSegmentCnt].Duration) {
+                    iter.CurrentTimePs -= iter.LineSegments[iter.LineSegmentCnt].Duration;
+                    iter.LineSegmentCnt++;
                 }
             }
 
-            public byte Get() {
+            public byte Get(PixelsI iter) {
                 byte intensity() {
-                    int val = Content.Get();
+                    int val = Content.Get(iter.ContentI);
                     int vres = val * (255 - BlackLevel);
                     vres /= 255;
                     vres += BlackLevel;
@@ -106,9 +113,10 @@ namespace CompositeVideoOscilloscope {
                     return val == 0 ? (byte)BlackLevel : (byte)vres;
                 }
 
-                var value = LineSegments[LineSegmentCnt].Value;
-                return value == 255 ?  intensity() : value;
+                var value = iter.LineSegments[iter.LineSegmentCnt].Value;
+                return value == 255 ? intensity() : value;
             }
         }
     }
 }
+
