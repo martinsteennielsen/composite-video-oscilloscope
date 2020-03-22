@@ -20,7 +20,7 @@ namespace CompositeVideoOscilloscope {
             GetLines().SelectMany(x => x).ToArray();
 
         private IEnumerable<List<byte>> GetLines() {
-            var currentLine = new LineIterator { LineNumber = Standard.LineBlocks[0].sy, CurrentPixel = StartPixels(0) };
+            var currentLine = new LineIterator { LineNumber = Standard.LineBlocks[0].sy };
             while (!currentLine.Finished) {
                 yield return GetNextLine(currentLine);
             }
@@ -34,7 +34,7 @@ namespace CompositeVideoOscilloscope {
             }
             currentLine.LineNumber += Standard.LineBlocks[currentLine.LineBlockCount].dy;
             currentLine.LineCnt++;
-            currentLine.CurrentPixel = StartPixels(currentLine.LineNumber);
+            ResetPixels(currentLine.CurrentPixel, currentLine.LineNumber);
             if (currentLine.LineCnt >= Standard.LineBlocks[currentLine.LineBlockCount].Count) {
                 currentLine.LineCnt = 0;
                 currentLine.LineBlockCount++;
@@ -43,8 +43,12 @@ namespace CompositeVideoOscilloscope {
             return output;
         }
 
-        PixelIterator StartPixels(int lineNo) =>
-            new PixelIterator { CurrentContent = Content.Start(lineNo) };
+        void ResetPixels(PixelIterator iter, int lineNo) {
+            iter.Finished = false;
+            iter.CurrentTimePs = 0;
+            iter.LineSegmentCnt = 0;
+            Content.Reset(iter.CurrentContent, lineNo);
+        }
 
         byte GetNextPixel(PixelIterator currentPixel, LineSegment[] lineSegments) {
             var lineSegment = lineSegments[currentPixel.LineSegmentCnt];

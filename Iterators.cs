@@ -9,7 +9,7 @@ namespace CompositeVideoOscilloscope {
         public int LineBlockCount;
         public int LineCnt;
         public int LineNumber;
-        public PixelIterator CurrentPixel;
+        public PixelIterator CurrentPixel = new PixelIterator();
     }
 
     public class PixelIterator {
@@ -17,25 +17,34 @@ namespace CompositeVideoOscilloscope {
 
         public long CurrentTimePs;
         public int LineSegmentCnt;
-        public ContentIterator CurrentContent;
+        public ContentIterator CurrentContent = new ContentIterator();
     }
 
     public class ContentIterator {
         public int CurrentX, CurrentY;
-        public PlotIterator Plot1, Plot2;
+        public PlotIterator Current1, Current2;
+        public PlotIterator Plot1 = new PlotIterator();
+        public PlotIterator Plot2 = new PlotIterator();
     }
 
     public class PlotIterator {
-        public AxisPlotIterator Axis;
-        public SignalPlotIterator Signal;
+        public AxisPlotIterator Axis = new AxisPlotIterator();
+        public SignalPlotIterator Signal = new SignalPlotIterator();
     }
+
     public class AxisPlotIterator {
         public (double X, double Y) Current = (0, 0);
     }
 
     public class SignalPlotIterator {
         public int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
-        public SamplingIterator iterB, iterF, iterG, iterI, iterM, iterN, iterP;
+        public SamplingIterator iterB = new SamplingIterator();
+        public SamplingIterator iterF = new SamplingIterator();
+        public SamplingIterator iterG = new SamplingIterator();
+        public SamplingIterator iterI = new SamplingIterator();
+        public SamplingIterator iterM = new SamplingIterator();
+        public SamplingIterator iterN = new SamplingIterator();
+        public SamplingIterator iterP = new SamplingIterator();
     }
 
     public class SamplingIterator {

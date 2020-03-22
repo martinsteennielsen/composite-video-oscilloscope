@@ -30,7 +30,6 @@ namespace CompositeVideoOscilloscope {
 
     public class FrameContent {
         readonly SignalPlot Plot1, Plot2;
-        readonly PlotIterator ZeroPlot = new PlotIterator();
 
         public FrameContent(SignalPlot plot1, SignalPlot plot2) {
             Plot1 = plot1;
@@ -39,29 +38,38 @@ namespace CompositeVideoOscilloscope {
 
         public void Next(ContentIterator iter) {
             iter.CurrentX++;
-            var visible1 = Plot1.Visible(iter.CurrentX, iter.CurrentY);
-            var visible2 = Plot2.Visible(iter.CurrentX, iter.CurrentY);
+            bool visible1 = Plot1.Visible(iter.CurrentX, iter.CurrentY);
+            bool visible2 = Plot2.Visible(iter.CurrentX, iter.CurrentY);
 
-            if (visible1 && iter.Plot1 == ZeroPlot) {
-                iter.Plot1 = Plot1.Start(iter.CurrentX, iter.CurrentY);
-            } else if (!visible1 && iter.Plot1 != ZeroPlot) {
-                iter.Plot1 = ZeroPlot;
+            if (visible1 && iter.Current1 == null) {
+               Plot1.Reset(iter.Plot1, iter.CurrentX, iter.CurrentY);
+                iter.Current1 = iter.Plot1;
+            } else if (!visible1 && iter.Current1 != null) {
+                iter.Current1 = null;
             }
-            if (visible2 && iter.Plot2 == ZeroPlot) {
-                iter.Plot2 = Plot2.Start(iter.CurrentX, iter.CurrentY);
-            } else if (!visible2 && iter.Plot2 != ZeroPlot) {
-                iter.Plot2 = ZeroPlot;
+            if (visible2 && iter.Current2 == null) {
+                Plot2.Reset(iter.Plot2, iter.CurrentX, iter.CurrentY);
+                iter.Current2 = iter.Plot2;
+            } else if (!visible2 && iter.Current2 != null) {
+                iter.Current2 = null;
             }
         }
 
-        public ContentIterator Start(int lineNo) =>
-            new ContentIterator { CurrentY = lineNo, CurrentX = 0, Plot1 = ZeroPlot, Plot2 = ZeroPlot };
+        public void Reset(ContentIterator iter, int lineNo) {
+            iter.CurrentY = lineNo;
+            iter.CurrentX = 0;
+            iter.Current1 = null;
+            iter.Current2 = null;
+            Plot1.Reset(iter.Plot1, 0, lineNo);
+            Plot2.Reset(iter.Plot2, 0, lineNo);
+        }
 
+        
         public int Get(ContentIterator iter) =>
-            iter.Plot1 == ZeroPlot && iter.Plot2 == ZeroPlot ? 0
-            : iter.Plot1 == ZeroPlot ? Plot2.GetNext(iter.Plot2)
-            : iter.Plot2 == ZeroPlot ? Plot1.GetNext(iter.Plot1)
-            : Blend(Plot1.GetNext(iter.Plot1), Plot2.GetNext(iter.Plot2), 50);
+            iter.Current1 == null && iter.Current2 == null ? 0
+            : iter.Current1 == null ? Plot2.GetNext(iter.Current2)
+            : iter.Current2 == null ? Plot1.GetNext(iter.Current1)
+            : Blend(Plot1.GetNext(iter.Current1), Plot2.GetNext(iter.Current2), 50);
 
         private int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;

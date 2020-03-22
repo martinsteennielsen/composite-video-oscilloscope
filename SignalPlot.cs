@@ -31,8 +31,9 @@ namespace CompositeVideoOscilloscope {
         public bool Visible(int x, int y) =>
             Viewport.Visible(x, y);
 
-        public PlotIterator Start(int x, int y) =>
-            new PlotIterator { Axis = LayerAxis.Start(x, y), Signal = LayerSignal.Start(x, y) };
-
+        public void Reset(PlotIterator iter, int x, int y) {
+            LayerAxis.Reset(iter.Axis, x, y);
+            LayerSignal.Reset(iter.Signal, x, y);
+        }
     }
 }

@@ -35,25 +35,24 @@ namespace CompositeVideoOscilloscope {
         private int InterpolateTime(int v0, int v1, int vt) =>
             (((vt - v0) << 8) / (v1 + v0)) >> 8;
 
-        public SamplingIterator CreateIterator((int t, int v) start, (int t, int v) delta) {
+        public void Reset(SamplingIterator iter, (int t, int v) start, (int t, int v) delta) {
             var deltaMod = delta.t % SampleTimeNs;
             var startFrac = Math.Abs(start.t % SampleTimeNs);
-            SamplingIterator iter = new SamplingIterator {
-                BufPos = start.t / SampleTimeNs,
-                DeltaBufPos = (delta.t / SampleTimeNs),
-                DeltaDivisor = Math.Abs(deltaMod),
-                DeltaDivisorOverrun = deltaMod > 0 ? 1 : -1,
-                Divisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac,
-                DeltaScreenVoltage = delta.v,
-                ScreenVoltage = start.v,
-                SampleVoltage = 0,
-                CurrentValue = 8,
-            };
+
+            iter.BufPos = start.t / SampleTimeNs;
+            iter.DeltaBufPos = (delta.t / SampleTimeNs);
+            iter.DeltaDivisor = Math.Abs(deltaMod);
+            iter.DeltaDivisorOverrun = deltaMod > 0 ? 1 : -1;
+            iter.Divisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac;
+            iter.DeltaScreenVoltage = delta.v;
+            iter.ScreenVoltage = start.v;
+            iter.SampleVoltage = 0;
+            iter.CurrentValue = 8;
+
             if (iter.BufPos >= 0 && iter.BufPos < Buffer.Length) {
                 iter.SampleVoltage = Buffer[iter.BufPos];
                 iter.CurrentValue = iter.ScreenVoltage > iter.SampleVoltage ? 1 : -1;
             }
-            return iter;
         }
 
         public int GetNext(SamplingIterator iter) {

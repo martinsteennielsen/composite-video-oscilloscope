@@ -21,8 +21,8 @@ namespace CompositeVideoOscilloscope {
             iter.Current.Y += Delta.Y;
         }
 
-        public AxisPlotIterator Start(int x, int y) =>
-            new AxisPlotIterator { Current = View.Transform(x, y) };
+        public void Reset(AxisPlotIterator iter, int x, int y) =>
+            iter.Current = View.Transform(x, y);
 
         public int Get(AxisPlotIterator iter) =>
              Value(iter.Current);
