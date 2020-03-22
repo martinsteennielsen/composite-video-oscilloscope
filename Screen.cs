@@ -36,40 +36,40 @@ namespace CompositeVideoOscilloscope {
             Plot2 = plot2;
         }
 
-        public void Next(ContentIterator iter) {
-            iter.CurrentX++;
-            bool visible1 = Plot1.Visible(iter.CurrentX, iter.CurrentY);
-            bool visible2 = Plot2.Visible(iter.CurrentX, iter.CurrentY);
+        public void Next(ContentState current) {
+            current.LocationX++;
+            bool visible1 = Plot1.Visible(current.LocationX, current.LocationY);
+            bool visible2 = Plot2.Visible(current.LocationX, current.LocationY);
 
-            if (visible1 && iter.Current1 == null) {
-               Plot1.Reset(iter.Plot1, iter.CurrentX, iter.CurrentY);
-                iter.Current1 = iter.Plot1;
-            } else if (!visible1 && iter.Current1 != null) {
-                iter.Current1 = null;
+            if (visible1 && !current.Plot1Visible) {
+               Plot1.ResetState(current.Plot1State, current.LocationX, current.LocationY);
+                current.Plot1Visible = true;
+            } else if (!visible1 && current.Plot1Visible) {
+                current.Plot1Visible = false;
             }
-            if (visible2 && iter.Current2 == null) {
-                Plot2.Reset(iter.Plot2, iter.CurrentX, iter.CurrentY);
-                iter.Current2 = iter.Plot2;
-            } else if (!visible2 && iter.Current2 != null) {
-                iter.Current2 = null;
+            if (visible2 && !current.Plot2Visible) {
+                Plot2.ResetState(current.Plot2State, current.LocationX, current.LocationY);
+                current.Plot2Visible = true;
+            } else if (!visible2 && current.Plot2Visible) {
+                current.Plot2Visible = false;
             }
         }
 
-        public void Reset(ContentIterator iter, int lineNo) {
-            iter.CurrentY = lineNo;
-            iter.CurrentX = 0;
-            iter.Current1 = null;
-            iter.Current2 = null;
-            Plot1.Reset(iter.Plot1, 0, lineNo);
-            Plot2.Reset(iter.Plot2, 0, lineNo);
+        public void ResetState(ContentState current, int lineNo) {
+            current.LocationY = lineNo;
+            current.LocationX = 0;
+            current.Plot1Visible = false;
+            current.Plot2Visible = false;
+            Plot1.ResetState(current.Plot1State, 0, lineNo);
+            Plot2.ResetState(current.Plot2State, 0, lineNo);
         }
 
         
-        public int Get(ContentIterator iter) =>
-            iter.Current1 == null && iter.Current2 == null ? 0
-            : iter.Current1 == null ? Plot2.GetNext(iter.Current2)
-            : iter.Current2 == null ? Plot1.GetNext(iter.Current1)
-            : Blend(Plot1.GetNext(iter.Current1), Plot2.GetNext(iter.Current2), 50);
+        public int Get(ContentState current) =>
+            !current.Plot1Visible  && !current.Plot2Visible  ? 0
+            : !current.Plot1Visible ? Plot2.GetNext(current.Plot2State)
+            : !current.Plot2Visible ? Plot1.GetNext(current.Plot1State)
+            : Blend(Plot1.GetNext(current.Plot1State), Plot2.GetNext(current.Plot2State), 50);
 
         private int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;

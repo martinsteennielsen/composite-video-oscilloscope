@@ -14,26 +14,26 @@ namespace CompositeVideoOscilloscope {
             Controls = controls;
         }
 
-        public int GetNext(PlotIterator iter) {
-            var current = Get(iter);
-            LayerSignal.Next(iter.Signal);
-            LayerAxis.Next(iter.Axis);
-            return current;
+        public int GetNext(PlotState current) {
+            var currentValue = Get(current);
+            LayerSignal.Next(current.SignalState);
+            LayerAxis.Next(current.AxisState);
+            return currentValue;
         }
         int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
 
-        int Get(PlotIterator iter) {
-            int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.Get(iter.Axis));
-            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Get(iter.Signal));
+        int Get(PlotState current) {
+            int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.Get(current.AxisState));
+            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Get(current.SignalState));
         }
 
         public bool Visible(int x, int y) =>
             Viewport.Visible(x, y);
 
-        public void Reset(PlotIterator iter, int x, int y) {
-            LayerAxis.Reset(iter.Axis, x, y);
-            LayerSignal.Reset(iter.Signal, x, y);
+        public void ResetState(PlotState current, int x, int y) {
+            LayerAxis.ResetState(current.AxisState, x, y);
+            LayerSignal.ResetState(current.SignalState, x, y);
         }
     }
 }

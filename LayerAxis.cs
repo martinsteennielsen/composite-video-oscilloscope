@@ -16,16 +16,16 @@ namespace CompositeVideoOscilloscope {
             Delta = (_dX - doX, _dY - doY);
         }
 
-        public void Next(AxisPlotIterator iter) {
-            iter.Current.X += Delta.X;
-            iter.Current.Y += Delta.Y;
+        public void Next(AxisPlotState current) {
+            current.Location.X += Delta.X;
+            current.Location.Y += Delta.Y;
         }
 
-        public void Reset(AxisPlotIterator iter, int x, int y) =>
-            iter.Current = View.Transform(x, y);
+        public void ResetState(AxisPlotState current, int x, int y) =>
+            current.Location = View.Transform(x, y);
 
-        public int Get(AxisPlotIterator iter) =>
-             Value(iter.Current);
+        public int Get(AxisPlotState current) =>
+             Value(current.Location);
 
         private int Value((double x, double y) pos) =>
              pos.x % 1 < Width || pos.y % 1 < Width ? 0xFF : 0;

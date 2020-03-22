@@ -25,41 +25,41 @@ namespace CompositeVideoOscilloscope {
         (int, int) Subtract((int, int) a, (int, int) b) =>
             (a.Item1 - b.Item1, a.Item2 - b.Item2);
 
-        public void Next(SignalPlotIterator iter) {
-            iter.a = iter.b;
-            iter.c = iter.e; iter.d = iter.f; iter.e = iter.g;
-            iter.h = iter.i;
-            iter.j = iter.l; iter.k = iter.m; iter.l = iter.n;
-            iter.o = iter.p;
-            iter.b = Sample.GetNext(iter.iterB);
-            iter.f = Sample.GetNext(iter.iterF);
-            iter.g = Sample.GetNext(iter.iterG);
-            iter.i = Sample.GetNext(iter.iterI);
-            iter.m = Sample.GetNext(iter.iterM);
-            iter.n = Sample.GetNext(iter.iterN);
-            iter.p = Sample.GetNext(iter.iterP);
+        public void Next(SignalPlotState current) {
+            current.a = current.b;
+            current.c = current.e; current.d = current.f; current.e = current.g;
+            current.h = current.i;
+            current.j = current.l; current.k = current.m; current.l = current.n;
+            current.o = current.p;
+            current.b = Sample.GetNext(current.B);
+            current.f = Sample.GetNext(current.F);
+            current.g = Sample.GetNext(current.G);
+            current.i = Sample.GetNext(current.I);
+            current.m = Sample.GetNext(current.M);
+            current.n = Sample.GetNext(current.N);
+            current.p = Sample.GetNext(current.P);
         }
 
-        public void Reset(SignalPlotIterator iter, int startX, int startY) {
-            Sample.Reset(iter.iterB, View.TransformD(startX + 0.5, startY - 1), Delta);
-            Sample.Reset(iter.iterF, View.TransformD(startX + 0.5, startY - 0.5), Delta);
-            Sample.Reset(iter.iterI, View.TransformD(startX + 0.5, startY), delta: Delta);
-            Sample.Reset(iter.iterM, View.TransformD(startX + 0.5, startY + 0.5), Delta);
-            Sample.Reset(iter.iterP, View.TransformD(startX + 0.5, startY + 1), Delta);
-            Sample.Reset(iter.iterG, View.TransformD(startX + 1, startY - 0.5), Delta);
-            Sample.Reset(iter.iterN, View.TransformD(startX + 1, startY + 0.5), Delta);
-            iter.a = iter.b = iter.c = iter.d = iter.e = iter.f = iter.g = iter.h = iter.i = iter.j = iter.k = iter.l = iter.n = iter.o = iter.p = 8;
+        public void ResetState(SignalPlotState current, int startX, int startY) {
+            Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY - 1), Delta);
+            Sample.ResetState(current.F, View.TransformD(startX + 0.5, startY - 0.5), Delta);
+            Sample.ResetState(current.I, View.TransformD(startX + 0.5, startY), delta: Delta);
+            Sample.ResetState(current.M, View.TransformD(startX + 0.5, startY + 0.5), Delta);
+            Sample.ResetState(current.P, View.TransformD(startX + 0.5, startY + 1), Delta);
+            Sample.ResetState(current.G, View.TransformD(startX + 1, startY - 0.5), Delta);
+            Sample.ResetState(current.N, View.TransformD(startX + 1, startY + 0.5), Delta);
+            current.a = current.b = current.c = current.d = current.e = current.f = current.g = current.h = current.i = current.j = current.k = current.l = current.n = current.o = current.p = 8;
         }
 
-        public int Get(SignalPlotIterator iter) =>
-            Get_(iter) << 5;
+        public int Get(SignalPlotState current) =>
+            Get_(current) << 5;
 
-        public int Get_(SignalPlotIterator iter) =>
-            Pixel(iter.a + iter.c + iter.h + iter.e) +
-            Pixel(iter.e + iter.b + iter.i + iter.g) +
-            Pixel(iter.j + iter.h + iter.l + iter.o) +
-            Pixel(iter.l + iter.n + iter.i + iter.p) +
-            (Pixel(iter.d + iter.f + iter.k + iter.m) << 2);
+        public int Get_(SignalPlotState current) =>
+            Pixel(current.a + current.c + current.h + current.e) +
+            Pixel(current.e + current.b + current.i + current.g) +
+            Pixel(current.j + current.h + current.l + current.o) +
+            Pixel(current.l + current.n + current.i + current.p) +
+            (Pixel(current.d + current.f + current.k + current.m) << 2);
 
         private byte Pixel(int sumDelta) =>
             sumDelta > 3 || sumDelta == -4 ? (byte)0 : (byte)1;

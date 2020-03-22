@@ -20,21 +20,21 @@ namespace CompositeVideoOscilloscope {
             GetLines().SelectMany(x => x).ToArray();
 
         private IEnumerable<List<byte>> GetLines() {
-            var currentLine = new LineIterator { LineNumber = Standard.LineBlocks[0].sy };
+            var currentLine = new LineState { LineNumber = Standard.LineBlocks[0].sy };
             while (!currentLine.Finished) {
                 yield return GetNextLine(currentLine);
             }
         }
 
-        List<byte> GetNextLine(LineIterator currentLine) {
+        List<byte> GetNextLine(LineState currentLine) {
             var output = new List<byte>(320);
             var lineSegments = Standard.LineBlocks[currentLine.LineBlockCount].LineSegments;
-            while (!currentLine.CurrentPixel.Finished) {
-                output.Add(GetNextPixel(currentLine.CurrentPixel, lineSegments));
+            while (!currentLine.PixelState.Finished) {
+                output.Add(GetNextPixel(currentLine.PixelState, lineSegments));
             }
             currentLine.LineNumber += Standard.LineBlocks[currentLine.LineBlockCount].dy;
             currentLine.LineCnt++;
-            ResetPixels(currentLine.CurrentPixel, currentLine.LineNumber);
+            ResetPixelState(currentLine.PixelState, currentLine.LineNumber);
             if (currentLine.LineCnt >= Standard.LineBlocks[currentLine.LineBlockCount].Count) {
                 currentLine.LineCnt = 0;
                 currentLine.LineBlockCount++;
@@ -43,28 +43,28 @@ namespace CompositeVideoOscilloscope {
             return output;
         }
 
-        void ResetPixels(PixelIterator iter, int lineNo) {
-            iter.Finished = false;
-            iter.CurrentTimePs = 0;
-            iter.LineSegmentCnt = 0;
-            Content.Reset(iter.CurrentContent, lineNo);
+        void ResetPixelState(PixelState current, int lineNo) {
+            current.Finished = false;
+            current.TimePs = 0;
+            current.LineSegmentCnt = 0;
+            Content.ResetState(current.ContentState, lineNo);
         }
 
-        byte GetNextPixel(PixelIterator currentPixel, LineSegment[] lineSegments) {
-            var lineSegment = lineSegments[currentPixel.LineSegmentCnt];
+        byte GetNextPixel(PixelState current, LineSegment[] lineSegments) {
+            var lineSegment = lineSegments[current.LineSegmentCnt];
 
-            currentPixel.CurrentTimePs += SampleTimePs;
+            current.TimePs += SampleTimePs;
             if (lineSegment.Value == 255) {
-                Content.Next(currentPixel.CurrentContent);
+                Content.Next(current.ContentState);
             }
-            if (currentPixel.CurrentTimePs >= lineSegment.Duration) {
-                currentPixel.CurrentTimePs -= lineSegment.Duration;
-                currentPixel.LineSegmentCnt++;
-                currentPixel.Finished = !(currentPixel.LineSegmentCnt < lineSegments.Length && currentPixel.CurrentTimePs < lineSegments[currentPixel.LineSegmentCnt].Duration);
+            if (current.TimePs >= lineSegment.Duration) {
+                current.TimePs -= lineSegment.Duration;
+                current.LineSegmentCnt++;
+                current.Finished = !(current.LineSegmentCnt < lineSegments.Length && current.TimePs < lineSegments[current.LineSegmentCnt].Duration);
             }
 
             return lineSegment.Value == 255 
-                ? ToVideoLevel(contentValue: Content.Get(currentPixel.CurrentContent)) 
+                ? ToVideoLevel(contentValue: Content.Get(current.ContentState)) 
                 : lineSegment.Value;
         }
 
