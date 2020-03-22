@@ -1,25 +1,23 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CompositeVideoOscilloscope {
     public class Output : IDisposable {
+        public int NoOfBytes = 0;
         readonly PublisherSocket Publisher;
 
         public Output(string address) {
             Publisher = new PublisherSocket();
-            Publisher.Options.SendHighWatermark = 2;
-            Publisher.Options.SendHighWatermark = 5;
             Publisher.Bind(address);
         }
 
-        public void Send(List<int> values, double sampleRate) {
+        public void Send(byte[] values, double sampleRate) {
             var msg = new NetMQMessage();
             msg.Append((long)sampleRate);
-            msg.Append(values.Select(x => (byte)x).ToArray());
+            msg.Append(values);
             Publisher.SendMultipartMessage(msg);
+            NoOfBytes += values.Length;
         }
 
         public void Dispose() {

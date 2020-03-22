@@ -31,14 +31,16 @@ namespace CompositeVideoOscilloscope {
         public int IntensityAxis = 0x00;
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
-        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectStairs;
+        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectLine;
     }
     
 
     public class Controls {
         public VideoStandard VideoStandard;
         public double CurrentTime;
+        public int BytesGenerated;
         public PlotControls PlotControls;
+        public double BitsPrSecond => CurrentTime == 0 ? 0  : BytesGenerated / CurrentTime * 1e-6;
 
     }
 }

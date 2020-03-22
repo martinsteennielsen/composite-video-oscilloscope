@@ -10,7 +10,8 @@ namespace CompositeVideoOscilloscope {
                 var oscilloscope = new Oscilloscope(output);
                 var canceller = new CancellationTokenSource();
                 Task.Run(() => oscilloscope.Run(canceller.Token));
-                Console.WriteLine("Press enter to terminate");
+                Console.Clear();
+                Console.WriteLine("           - Press enter to terminate");
                 Console.ReadLine();
                 canceller.Cancel();
             }
