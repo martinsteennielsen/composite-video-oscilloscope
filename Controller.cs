@@ -23,11 +23,20 @@ namespace CompositeVideoOscilloscope {
             Stopwatch.Start();
         }
 
-        public async Task<Controls> Run() {
+        public async Task<Controls> Run(int noOfGeneratedBytes) {
             await Task.Yield();
             var currentTime = Stopwatch.Elapsed.TotalSeconds;
             // var elapsedTime = Controls.VideoStandard.Timing.FrameTime; //currentTime - Controls.CurrentTime;
             var elapsedTime = currentTime - Controls.CurrentTime;
+            Controls.TimeMsCount += (int)(1000*elapsedTime);
+            if (Controls.TimeMsCount > 200) {
+                Controls.BytesPrSecond = 1000.0*Controls.ByteCount / Controls.TimeMsCount;
+                Controls.ByteCount = noOfGeneratedBytes;
+                Controls.TimeMsCount = Controls.TimeMsCount % 200;
+            } else {
+                Controls.ByteCount += noOfGeneratedBytes;
+            }
+
             Controls.CurrentTime = currentTime;
             Movements.Run(Controls, elapsedTime);
             Report();
@@ -37,7 +46,7 @@ namespace CompositeVideoOscilloscope {
         private void Report()
         {
             Console.SetCursorPosition(0, 0);
-            Console.WriteLine($"{Controls.BitsPrSecond:F3} Mb/s ");
+            Console.WriteLine($"{Controls.BytesPrSecond/1e6:F3} Mb/s ");
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 
 namespace CompositeVideoOscilloscope {
     public class Output : IDisposable {
-        public int NoOfBytes = 0;
         readonly PublisherSocket Publisher;
 
         public Output(string address) {
@@ -17,7 +16,6 @@ namespace CompositeVideoOscilloscope {
             msg.Append((long)sampleRate);
             msg.Append(values);
             Publisher.SendMultipartMessage(msg);
-            NoOfBytes += values.Length;
         }
 
         public void Dispose() {

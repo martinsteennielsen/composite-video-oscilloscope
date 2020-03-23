@@ -16,11 +16,11 @@ namespace CompositeVideoOscilloscope {
         }
 
         public async Task Run(CancellationToken canceller) {
+            var controls = await Controller.Run(noOfGeneratedBytes: 0);
             while (!canceller.IsCancellationRequested) {
-                var controls = await Controller.Run().ConfigureAwait(false);
                 var frame = new VideoFrame(controls.VideoStandard, Screen.Content).Get();
                 Output.Send(frame, sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
-                controls.BytesGenerated += frame.Length;
+                controls = await Controller.Run(noOfGeneratedBytes: frame.Length).ConfigureAwait(false);
             }
         }
     }

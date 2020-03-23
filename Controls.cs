@@ -38,9 +38,10 @@ namespace CompositeVideoOscilloscope {
     public class Controls {
         public VideoStandard VideoStandard;
         public double CurrentTime;
-        public int BytesGenerated;
+        public double BytesPrSecond;
         public PlotControls PlotControls;
-        public double BitsPrSecond => CurrentTime == 0 ? 0  : BytesGenerated / CurrentTime * 1e-6;
 
+        public int TimeMsCount;
+        public int ByteCount;
     }
 }
