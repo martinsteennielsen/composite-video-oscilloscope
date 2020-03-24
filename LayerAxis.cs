@@ -3,16 +3,17 @@
 namespace CompositeVideoOscilloscope {
 
     public class LayerAxis {
+        private const int Scaler = 10000;
         private readonly Viewport View;
-        private readonly double Width;
-        private readonly (double X, double Y) Delta;
+        private readonly int Width;
+        private readonly (int X, int Y) Delta;
 
         public LayerAxis(Viewport screen, double noOfDivisions, double angle) {
-            View = screen.SetView(10, 10, 10 + noOfDivisions, 10 + noOfDivisions, angle);
-            var (dX, dY) = View.Transform(1, 1);
-            var (doX, doY) = View.Transform(0, 0);
-            Width = Math.Sqrt((dX - doX) * (dX - doX) + (dY - doY) * (dY - doY));
-            var (_dX, _dY) = View.Transform(1, 0);
+            View = screen.SetView(Scaler*10, Scaler*10, Scaler*(10 + noOfDivisions), Scaler*(10+noOfDivisions), angle);
+            var (dX, dY) = View.TransformD(1, 1);
+            var (doX, doY) = View.TransformD(0, 0);
+            Width = (int)Math.Sqrt((dX - doX) * (dX - doX) + (dY - doY) * (dY - doY));
+            var (_dX, _dY) = View.TransformD(1, 0);
             Delta = (_dX - doX, _dY - doY);
         }
 
@@ -23,10 +24,10 @@ namespace CompositeVideoOscilloscope {
             return value;
         }
 
-        public void ResetState(AxisLayerState current, int x, int y) =>
-            current.Location = View.Transform(x, y);
+    public void ResetState(AxisLayerState current, int x, int y) =>
+            current.Location = View.TransformI(x, y);
 
-        private int Value((double x, double y) pos) =>
-             pos.x % 1 < Width || pos.y % 1 < Width ? 0xFF : 0;
+        private int Value((int x, int y) pos) =>
+             pos.x % Scaler < Width ? 0xFF : pos.y % Scaler < Width ? 0xFF : 0;
     }
 }

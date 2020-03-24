@@ -4,13 +4,11 @@ namespace CompositeVideoOscilloscope {
 
     public class Sampling {
         const int ns = (int)1e9;
-        readonly int SampleDuration;
         readonly int SampleTimeNs;
         readonly int[] Buffer;
 
-        public Sampling(int[] buffer, double startTime, double endTime, double sampleTime, PlotControls controls) {
+        public Sampling(int[] buffer, double sampleTime) {
             Buffer = buffer;
-            SampleDuration = (int)(ns * (endTime - startTime));
             SampleTimeNs = (int)(ns * sampleTime);
         }
 
@@ -41,37 +39,36 @@ namespace CompositeVideoOscilloscope {
 
             current.BufPos = start.t / SampleTimeNs;
             current.DeltaBufPos = (delta.t / SampleTimeNs);
-            current.DeltaDivisor = Math.Abs(deltaMod);
-            current.DeltaDivisorOverrun = deltaMod > 0 ? 1 : -1;
-            current.Divisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac;
+            current.DeltaBufPosDivisor = Math.Abs(deltaMod);
+            current.DeltaBufPosDivisorOverrun = deltaMod > 0 ? 1 : -1;
+            current.BufPosDivisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac;
             current.DeltaScreenVoltage = delta.v;
             current.ScreenVoltage = start.v;
-            current.SampleVoltage = 0;
-            current.Value = 8;
-
-            if (current.BufPos >= 0 && current.BufPos < Buffer.Length) {
-                current.SampleVoltage = Buffer[current.BufPos];
-                current.Value = current.ScreenVoltage > current.SampleVoltage ? 1 : -1;
-            }
+            SetCurrentValue(current);
         }
 
         public int GetNext(SamplingState current) {
-            var delta = current.DeltaBufPos;
-            current.Divisor -= current.DeltaDivisor;
-            if (current.Divisor <= 0) {
-                current.Divisor += SampleTimeNs;
-                delta += current.DeltaDivisorOverrun;
-            }
-            current.BufPos += delta;
+            SetCurrentValue(current);
 
             current.ScreenVoltage += current.DeltaScreenVoltage;
+            current.BufPos += current.DeltaBufPos;
+            current.BufPosDivisor -= current.DeltaBufPosDivisor;
+        
+            if (current.BufPosDivisor <= 0) {
+                current.BufPosDivisor += SampleTimeNs;
+                current.BufPos += current.DeltaBufPosDivisorOverrun;
+            }
+            
+            return current.Value;
+        }
+
+        private void SetCurrentValue(SamplingState current) {
             if (current.BufPos >= 0 && current.BufPos < Buffer.Length) {
-                current.SampleVoltage = Buffer[current.BufPos];
-                current.Value = current.ScreenVoltage > current.SampleVoltage ? 1 : -1;
+                current.Value = current.ScreenVoltage > Buffer[current.BufPos] ? 1 : -1;
             } else {
                 current.Value = 8;
             }
-            return current.Value;
         }
+
     }
 }

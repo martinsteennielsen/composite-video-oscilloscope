@@ -16,13 +16,13 @@ namespace CompositeVideoOscilloscope {
             SampleTime = .1/Buffer1.Length;
         }
 
-        public Sampling GetSampling(int channel, double currentTime, PlotControls controls) {
+        public Sampling GetSampling(int channel, double currentTime) {
             if (channel == 1) {
                 var (startTime, endTime) = Run(currentTime, Buffer1, Generate1);
-                return new Sampling(Buffer1, startTime, endTime, SampleTime, controls);
+                return new Sampling(Buffer1, SampleTime);
             } else {
                 var (startTime, endTime) = Run(currentTime, Buffer2, Generate2);
-                return new Sampling(Buffer2, startTime, endTime, SampleTime, controls);
+                return new Sampling(Buffer2, SampleTime);
             }
         }
         

@@ -30,7 +30,7 @@
     }
 
     public class AxisLayerState {
-        public (double X, double Y) Location = (0, 0);
+        public (int X, int Y) Location = (0, 0);
     }
 
     public class SignalLayerState {
@@ -59,13 +59,12 @@
 
     public class SamplingState {
         public int DeltaBufPos;
-        public int DeltaDivisorOverrun;
-        public int Divisor;
-        public int DeltaDivisor;
+        public int DeltaBufPosDivisorOverrun;
+        public int BufPosDivisor;
+        public int DeltaBufPosDivisor;
         public int DeltaScreenVoltage;
         public int BufPos;
         public int ScreenVoltage;
-        public int SampleVoltage;
         public int Value;
     }
 }

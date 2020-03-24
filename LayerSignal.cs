@@ -9,7 +9,7 @@ namespace CompositeVideoOscilloscope {
         public readonly Func<SignalLayerState, int> GetNext;
         public readonly Action<SignalLayerState,int,int> ResetState;
 
-        public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle, VideoStandard standard) {
+        public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle) {
             Sample = sample;
             var divisionsPrQuadrant = controls.NumberOfDivisions / 2;
 
