@@ -25,20 +25,20 @@
     }
 
     public class PlotState {
-        public AxisPlotState AxisState = new AxisPlotState();
-        public SignalPlotState SignalState = new SignalPlotState();
+        public AxisLayerState AxisState = new AxisLayerState();
+        public SignalLayerState SignalState = new SignalLayerState();
     }
 
-    public class AxisPlotState {
+    public class AxisLayerState {
         public (double X, double Y) Location = (0, 0);
     }
 
-    public class SignalPlotState {
-        public PlotSamplingState SamplingState = new PlotSamplingState();
-        public PlotSubSamplingState SubSamplingState = new PlotSubSamplingState();
+    public class SignalLayerState {
+        public SignalLayerSamplingState SamplingState = new SignalLayerSamplingState();
+        public SignalLayerSubSamplingState SubSamplingState = new SignalLayerSubSamplingState();
     }
 
-    public class PlotSamplingState {
+    public class SignalLayerSamplingState {
         public int a, b, c, d;
         public SamplingState A = new SamplingState();
         public SamplingState B = new SamplingState();
@@ -46,7 +46,7 @@
         public SamplingState D = new SamplingState();
     }
 
-    public class PlotSubSamplingState {
+    public class SignalLayerSubSamplingState {
         public int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
         public SamplingState B = new SamplingState();
         public SamplingState F = new SamplingState();

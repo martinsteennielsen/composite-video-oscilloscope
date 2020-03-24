@@ -6,8 +6,8 @@ namespace CompositeVideoOscilloscope {
         private readonly Viewport View;
         private readonly Sampling Sample;
         private readonly (int, int) Delta;
-        public readonly Func<SignalPlotState, int> GetNext;
-        public readonly Action<SignalPlotState,int,int> ResetState;
+        public readonly Func<SignalLayerState, int> GetNext;
+        public readonly Action<SignalLayerState,int,int> ResetState;
 
         public LayerSignal(Viewport screen, Sampling sample, PlotControls controls, double angle, VideoStandard standard) {
             Sample = sample;
@@ -25,17 +25,17 @@ namespace CompositeVideoOscilloscope {
 
             GetNext = controls.SubSamplePlot
                 ? state => _GetNext(state.SubSamplingState)
-                : (Func<SignalPlotState, int>)(state => _GetNext(state.SamplingState));
+                : (Func<SignalLayerState, int>)(state => _GetNext(state.SamplingState));
 
             ResetState = controls.SubSamplePlot
                 ? (state, x, y) => _ResetState(state.SubSamplingState, x, y)
-                : (Action<SignalPlotState, int, int>)((state, x, y) => _ResetState(state.SamplingState, x, y));
+                : (Action<SignalLayerState, int, int>)((state, x, y) => _ResetState(state.SamplingState, x, y));
         }
 
         (int, int) Subtract((int, int) a, (int, int) b) =>
             (a.Item1 - b.Item1, a.Item2 - b.Item2);
 
-        void _ResetState(PlotSamplingState current, int startX, int startY) {
+        void _ResetState(SignalLayerSamplingState current, int startX, int startY) {
             Sample.ResetState(current.A, View.TransformD(startX - 0.5, startY), Delta);
             Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY), Delta);
             Sample.ResetState(current.C, View.TransformD(startX, startY - 0.5), delta: Delta);
@@ -43,7 +43,7 @@ namespace CompositeVideoOscilloscope {
             current.a = current.b = current.c = current.d = 8;
         }
 
-        void _ResetState(PlotSubSamplingState current, int startX, int startY) {
+        void _ResetState(SignalLayerSubSamplingState current, int startX, int startY) {
             Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY - 1), Delta);
             Sample.ResetState(current.F, View.TransformD(startX + 0.5, startY - 0.5), Delta);
             Sample.ResetState(current.I, View.TransformD(startX + 0.5, startY), delta: Delta);
@@ -54,7 +54,7 @@ namespace CompositeVideoOscilloscope {
             current.a = current.b = current.c = current.d = current.e = current.f = current.g = current.h = current.i = current.j = current.k = current.l = current.n = current.o = current.p = 8;
         }
 
-        int _GetNext(PlotSamplingState current) {
+        int _GetNext(SignalLayerSamplingState current) {
             var currentValue = Pixel(current.a + current.b + current.c + current.d) << 8;
             current.a = current.b;
             current.b = Sample.GetNext(current.B);
@@ -63,7 +63,7 @@ namespace CompositeVideoOscilloscope {
             return currentValue;
         }
 
-        int _GetNext(PlotSubSamplingState current) {
+        int _GetNext(SignalLayerSubSamplingState current) {
             var currentValue = Get(current) << 5;
             current.a = current.b;
             current.c = current.e; current.d = current.f; current.e = current.g;
@@ -80,7 +80,7 @@ namespace CompositeVideoOscilloscope {
             return currentValue;
         }
 
-        int Get(PlotSubSamplingState current) =>
+        int Get(SignalLayerSubSamplingState current) =>
             Pixel(current.a + current.c + current.h + current.e) +
             Pixel(current.e + current.b + current.i + current.g) +
             Pixel(current.j + current.h + current.l + current.o) +
