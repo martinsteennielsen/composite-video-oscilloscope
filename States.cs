@@ -34,6 +34,19 @@
     }
 
     public class SignalPlotState {
+        public PlotSamplingState SamplingState = new PlotSamplingState();
+        public PlotSubSamplingState SubSamplingState = new PlotSubSamplingState();
+    }
+
+    public class PlotSamplingState {
+        public int a, b, c, d;
+        public SamplingState A = new SamplingState();
+        public SamplingState B = new SamplingState();
+        public SamplingState C = new SamplingState();
+        public SamplingState D = new SamplingState();
+    }
+
+    public class PlotSubSamplingState {
         public int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p;
         public SamplingState B = new SamplingState();
         public SamplingState F = new SamplingState();

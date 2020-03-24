@@ -2,7 +2,6 @@ using System;
 
 namespace CompositeVideoOscilloscope {
 
-
     public class TriggerControls {
         public double Voltage;
         public double Edge;
@@ -31,6 +30,7 @@ namespace CompositeVideoOscilloscope {
         public int IntensityAxis = 0x00;
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
+        public bool SubSamplePlot = true;
         public SubSampleRender SubSamplePoints = SubSampleRender.ConnectLine;
     }
     

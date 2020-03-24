@@ -14,18 +14,12 @@ namespace CompositeVideoOscilloscope {
             Controls = controls;
         }
 
-        public int GetNext(PlotState current) {
-            var currentValue = Get(current);
-            LayerSignal.Next(current.SignalState);
-            LayerAxis.Next(current.AxisState);
-            return currentValue;
-        }
         int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
 
-        int Get(PlotState current) {
-            int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.Get(current.AxisState));
-            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.Get(current.SignalState));
+        public int GetNext(PlotState current) {
+            int intensityAxis = Blend(Controls.IntensityBackground, Controls.IntensityAxis, alpha: LayerAxis.GetNext(current.AxisState));
+            return Blend(intensityAxis, Controls.IntensitySignal, alpha: LayerSignal.GetNext(current.SignalState));
         }
 
         public bool Visible(int x, int y) =>
