@@ -8,9 +8,9 @@ namespace CompositeVideoOscilloscope {
         readonly Output Output;
         readonly Screen Screen;
 
-        public Oscilloscope(Output output) {
+        public Oscilloscope(Output output, Controller controller) {
             Output = output;
-            Controller = new Controller(); 
+            Controller = controller;
             Aquisition = new Aquisition();
             Screen = new Screen(Controller, aquisition: Aquisition);
         }
@@ -19,7 +19,9 @@ namespace CompositeVideoOscilloscope {
             var controls = await Controller.Run(noOfGeneratedBytes: 0);
             while (!canceller.IsCancellationRequested) {
                 var frame = new VideoFrame(controls.VideoStandard, Screen.Content).Get();
-                Output.Send(frame, sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
+                if (controls.EnableOutput) {
+                    Output.Send(frame, sampleRate: controls.VideoStandard.Timing.BandwidthFreq);
+                }
                 controls = await Controller.Run(noOfGeneratedBytes: frame.Length).ConfigureAwait(false);
             }
         }

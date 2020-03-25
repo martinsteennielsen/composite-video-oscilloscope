@@ -30,10 +30,10 @@ namespace CompositeVideoOscilloscope {
         public int IntensityAxis = 0x00;
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
-        public bool SubSamplePlot = true;
+        public bool SubSamplePlot = false;
         public SubSampleRender SubSamplePoints = SubSampleRender.ConnectLine;
     }
-    
+
 
     public class Controls {
         public VideoStandard VideoStandard;
@@ -43,5 +43,7 @@ namespace CompositeVideoOscilloscope {
 
         public int TimeMsCount;
         public int ByteCount;
+        public bool RunMovements;
+        public bool EnableOutput;
     }
 }

@@ -8,7 +8,7 @@ namespace CompositeVideoOscilloscope {
         public double VerticalSerrationTime;
         public byte BlackLevel;
         public int BlankLines;
-        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255*0.3), BlankLines = 38 };
+        public static SyncConstants Pal => new SyncConstants { LineBlankingTime = 12.05e-6, LineSyncTime = 4.7e-6, FrontPorchTime = 1.65e-6, EquPulseTime = 2.3e-6, VerticalSerrationTime = 4.7e-6, BlackLevel = (int)(255 * 0.3), BlankLines = 38 };
     }
 
     public class Timing {
@@ -31,30 +31,32 @@ namespace CompositeVideoOscilloscope {
 
         public static Timing iPal => new Timing(hFreq: 15625, vFreq: 50, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
         public static Timing pPal => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 5e6, syncTimes: SyncConstants.Pal);
+        public static Timing pPal10 => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 10e6, syncTimes: SyncConstants.Pal);
     }
 
     public struct VideoStandard {
         const long ps = (long)1e12;
-        public readonly LineBlock[] LineBlocks; 
+        public readonly LineBlock[] LineBlocks;
         public readonly Timing Timing;
         public readonly int InterlacedScaler;
         private VideoStandard(LineBlock[] lineBlocks, Timing timing, bool interlaced) {
-            LineBlocks=lineBlocks;
+            LineBlocks = lineBlocks;
             Timing = timing;
             InterlacedScaler = interlaced ? 2 : 1;
         }
 
         public static VideoStandard Pal5MhzInterlaced = new VideoStandard(lineBlocks: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
         public static VideoStandard Pal5MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
+        public static VideoStandard Pal10MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal10), timing: Timing.pPal10, interlaced: false);
 
-        public double VisibleWidth => Timing.BandwidthFreq/Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
+        public double VisibleWidth => Timing.BandwidthFreq / Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
         public double VisibleHeight => InterlacedScaler * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
 
         public int BlackLevel => Timing.SyncTimes.BlackLevel;
 
         public struct LineSegment { public byte Value; public long Duration; };
         public struct LineBlock { public int Count; public LineSegment[] LineSegments; public int dy; public int sy; };
-        
+
         private static LineBlock[] InterlacedFrame(Timing timing) {
             byte dark = timing.SyncTimes.BlackLevel, sign = 255, sync = 0;
 
