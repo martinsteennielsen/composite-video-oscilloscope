@@ -20,9 +20,11 @@ namespace CompositeVideoOscilloscope {
             GetLines().SelectMany(x => x).ToArray();
 
         private IEnumerable<List<byte>> GetLines() {
-            var currentLine = new LineState { LineNumber = Standard.LineBlocks[0].sy };
+            var currentLine = new LineState();
             while (!currentLine.Finished) {
+                ResetPixelState(currentLine.PixelState, currentLine.LineNumber);
                 yield return GetNextLine(currentLine);
+
             }
         }
 
@@ -34,12 +36,14 @@ namespace CompositeVideoOscilloscope {
             }
             currentLine.LineNumber += Standard.LineBlocks[currentLine.LineBlockCount].dy;
             currentLine.LineCnt++;
-            ResetPixelState(currentLine.PixelState, currentLine.LineNumber);
             if (currentLine.LineCnt >= Standard.LineBlocks[currentLine.LineBlockCount].Count) {
                 currentLine.LineCnt = 0;
                 currentLine.LineBlockCount++;
+                currentLine.Finished = !(currentLine.LineBlockCount < Standard.LineBlocks.Length && currentLine.LineCnt < Standard.LineBlocks[currentLine.LineBlockCount].Count);
+                if (!currentLine.Finished) {
+                    currentLine.LineNumber = Standard.LineBlocks[currentLine.LineBlockCount].sy;
+                }
             }
-            currentLine.Finished = !(currentLine.LineBlockCount < Standard.LineBlocks.Length && currentLine.LineCnt < Standard.LineBlocks[currentLine.LineBlockCount].Count);
             return output;
         }
 
@@ -63,8 +67,8 @@ namespace CompositeVideoOscilloscope {
                 current.Finished = !(current.LineSegmentCnt < lineSegments.Length && current.TimePs < lineSegments[current.LineSegmentCnt].Duration);
             }
 
-            return lineSegment.Value == 255 
-                ? ToVideoLevel(contentValue: Content.Get(current.ContentState)) 
+            return lineSegment.Value == 255
+                ? ToVideoLevel(contentValue: Content.Get(current.ContentState))
                 : lineSegment.Value;
         }
 
