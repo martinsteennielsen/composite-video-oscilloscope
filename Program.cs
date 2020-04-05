@@ -21,6 +21,10 @@ namespace CompositeVideoOscilloscope {
                     controls.VideoStandard =
                     (controls.VideoStandard.Equals(VideoStandard.Pal5MhzProgessiv)
                     ? VideoStandard.Pal10MhzProgessiv : VideoStandard.Pal5MhzProgessiv);
+                } else if (command == "i") {
+                    controls.VideoStandard =
+                    (controls.VideoStandard.Equals(VideoStandard.Pal5MhzProgessiv)
+                    ? VideoStandard.Pal5MhzInterlaced : VideoStandard.Pal5MhzProgessiv);
                 }
                 command = null;
             }

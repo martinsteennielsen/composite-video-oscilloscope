@@ -11,7 +11,7 @@ namespace CompositeVideoOscilloscope {
         private readonly Stopwatch Stopwatch;
         public readonly Controls Controls =
             new Controls() {
-                VideoStandard = VideoStandard.Pal5MhzProgessiv,
+                VideoStandard = VideoStandard.Pal5MhzInterlaced,
                 PlotControls = new PlotControls {
                     SubSamplePlot = false,
                     NumberOfDivisions = 10,
