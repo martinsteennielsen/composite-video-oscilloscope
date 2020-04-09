@@ -18,7 +18,7 @@ namespace CompositeVideoOscilloscope {
         public async Task Run(CancellationToken canceller) {
             var controls = await Controller.Run(noOfGeneratedBytes: 0);
             while (!canceller.IsCancellationRequested) {
-                var videoStandard = VideoStandard.Get(controls.VideoStandard);
+                var videoStandard = VideoConstants.Get(controls.VideoStandard);
                 var frame = new VideoFrame(videoStandard, Screen.Content).Get();
                 if (controls.EnableOutput) {
                     Output.Send(frame, sampleRate: videoStandard.Timing.BandwidthFreq);

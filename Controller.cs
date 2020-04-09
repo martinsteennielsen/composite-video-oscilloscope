@@ -1,24 +1,27 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 
 namespace CompositeVideoOscilloscope {
 
     public class Controller {
-        private readonly Action<Controls> Report;
-        private readonly Stopwatch Stopwatch;
         public readonly Controls Controls;
-        public readonly Movements Movements;
+        public readonly Queue<string> Commands = new Queue<string>();
 
-        public Controller(Action<Controls> report, Controls controls = null) {
-            Report = report;
-            Stopwatch = new Stopwatch();
-            Stopwatch.Start();
-            Controls = controls ?? new Controls() {
-                VideoStandard = VideoStandard_.Pal5MhzProgessiv,
+        private readonly string ControlsFile; 
+        private readonly Stopwatch Stopwatch = new Stopwatch();
+        private readonly Movements Movements = new Movements();
+
+        public Controller(string controlsFile = null) {
+            ControlsFile = controlsFile;
+
+            Controls = LoadControls() ?? new Controls() {
+                VideoStandard = VideoStandard.Pal5MhzProgessiv,
                 Plot1 = new PlotControls {
                     SubSamplePlot = false,
                     NumberOfDivisions = 10,
@@ -36,11 +39,20 @@ namespace CompositeVideoOscilloscope {
                 RunMovements = true,
                 EnableOutput = true,
             };
-            Movements = new Movements();
+
             Movements.Add(0, -0.04, 0, () => Controls.Plot2.Location.Left, d => Controls.Plot2.Location.Left += d);
             Movements.Add(0, -0.04, 0, () => Controls.Plot2.Location.Top, d => Controls.Plot2.Location.Top += d);
             Movements.Add(Math.PI / 2, 0.4, 0.01, () => Controls.Plot2.Location.Angle, d => Controls.Plot2.Location.Angle += d);
             Movements.Add(-Math.PI / 2, -0.2, -0.01, () => Controls.Plot1.Location.Angle, d => Controls.Plot1.Location.Angle += d);
+            Stopwatch.Start();
+        }
+
+        Controls LoadControls() {
+            try {
+                return JsonConvert.DeserializeObject<Controls>(File.ReadAllText(ControlsFile));
+            } catch {
+                return null;
+            }
         }
 
         public async Task<Controls> Run(int noOfGeneratedBytes) {
@@ -61,9 +73,35 @@ namespace CompositeVideoOscilloscope {
             if (Controls.RunMovements) {
                 Movements.Run(Controls, elapsedTime);
             }
-            Report(Controls);
+            
+            if (Commands.Any()) {
+                HandleCommand(Commands.Dequeue());
+            }
+
+            Console.Write($"\r {Controls.BytesPrSecond / 1e6:F3} Mb/s, command --> ");
+
             return Controls;
         }
 
+        void HandleCommand(string command) {
+            if (command == "s") {
+                Controls.Plot1.SubSamplePlot = !Controls.Plot1.SubSamplePlot;
+                Controls.Plot2.SubSamplePlot = !Controls.Plot2.SubSamplePlot;
+            } else if (command == "f") {
+                Controls.RunMovements = !Controls.RunMovements;
+            } else if (command == "o") {
+                Controls.EnableOutput = !Controls.EnableOutput;
+            } else if (command == "v") {
+                Controls.VideoStandard =
+                (Controls.VideoStandard == VideoStandard.Pal10MhzProgessiv
+                ? VideoStandard.Pal5MhzProgessiv : VideoStandard.Pal10MhzProgessiv);
+            } else if (command == "i") {
+                Controls.VideoStandard =
+                (Controls.VideoStandard == VideoStandard.Pal5MhzProgessiv
+                ? VideoStandard.Pal5MhzInterlaced : VideoStandard.Pal5MhzProgessiv);
+            } else if (command == "save") {
+                File.WriteAllText(ControlsFile, JsonConvert.SerializeObject(Controls, Formatting.Indented));
+            }
+        }
     }
 }

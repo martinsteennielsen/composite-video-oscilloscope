@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace CompositeVideoOscilloscope {
-    using static VideoStandard;
+    using static VideoConstants;
 
     public class VideoFrame {
-        private readonly VideoStandard Standard;
+        private readonly VideoConstants Standard;
         private readonly FrameContent Content;
         private readonly long SampleTimePs;
 
-        public VideoFrame(VideoStandard standard, FrameContent content) {
+        public VideoFrame(VideoConstants standard, FrameContent content) {
             Standard = standard;
             Content = content;
             SampleTimePs = (long)((long)1e12 * Standard.Timing.DotTime);

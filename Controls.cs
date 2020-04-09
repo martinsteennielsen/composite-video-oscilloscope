@@ -37,7 +37,7 @@ namespace CompositeVideoOscilloscope {
 
 
     public class Controls {
-        public VideoStandard_ VideoStandard;
+        public VideoStandard VideoStandard;
         public double CurrentTime;
         public double BytesPrSecond;
         public PlotControls Plot1;
