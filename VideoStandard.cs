@@ -34,6 +34,8 @@ namespace CompositeVideoOscilloscope {
         public static Timing pPal10 => new Timing(hFreq: 15625, vFreq: 25, bandwidthFreq: 10e6, syncTimes: SyncConstants.Pal);
     }
 
+    public enum VideoStandard_ { Pal5MhzInterlaced , Pal5MhzProgessiv , Pal10MhzProgessiv };
+
     public struct VideoStandard {
         const long ps = (long)1e12;
         public readonly LineBlock[] LineBlocks;
@@ -45,9 +47,15 @@ namespace CompositeVideoOscilloscope {
             InterlacedScaler = interlaced ? 2 : 1;
         }
 
-        public static VideoStandard Pal5MhzInterlaced = new VideoStandard(lineBlocks: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
-        public static VideoStandard Pal5MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
-        public static VideoStandard Pal10MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal10), timing: Timing.pPal10, interlaced: false);
+        public static VideoStandard Get(VideoStandard_ std) => 
+            std == VideoStandard_.Pal10MhzProgessiv ? Pal10MhzProgessiv
+            : std == VideoStandard_.Pal5MhzInterlaced ? Pal5MhzInterlaced
+            : std == VideoStandard_.Pal5MhzProgessiv ? Pal5MhzProgessiv
+            : Pal5MhzProgessiv;
+
+        static VideoStandard Pal5MhzInterlaced = new VideoStandard(lineBlocks: InterlacedFrame(Timing.iPal), timing: Timing.iPal, interlaced: true);
+        static VideoStandard Pal5MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal), timing: Timing.pPal, interlaced: false);
+        static VideoStandard Pal10MhzProgessiv = new VideoStandard(lineBlocks: ProgressiveFrame(Timing.pPal10), timing: Timing.pPal10, interlaced: false);
 
         public double VisibleWidth => Timing.BandwidthFreq / Timing.HFreq - (Timing.SyncTimes.LineBlankingTime / Timing.DotTime);
         public double VisibleHeight => InterlacedScaler * Timing.HFreq / Timing.VFreq - Timing.SyncTimes.BlankLines;
