@@ -1,4 +1,3 @@
-using System;
 
 namespace CompositeVideoOscilloscope {
 
@@ -40,12 +39,8 @@ namespace CompositeVideoOscilloscope {
     public class Controls {
         public VideoStandard VideoStandard;
         public double CurrentTime;
-        public double BytesPrSecond;
         public PlotControls Plot1;
         public PlotControls Plot2;
-
-        public int TimeMsCount;
-        public int ByteCount;
         public bool RunMovements;
         public bool EnableOutput;
     }

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Linq.Expressions;
 
 
 namespace CompositeVideoOscilloscope {
@@ -14,13 +13,13 @@ namespace CompositeVideoOscilloscope {
         public readonly Controls Controls;
         public readonly Queue<string> Commands = new Queue<string>();
 
-        private readonly string ControlsFile; 
+        private readonly string ControlsFile;
         private readonly Stopwatch Stopwatch = new Stopwatch();
         private readonly Movements Movements;
 
         public Controller(string controlsFile = null) {
             ControlsFile = controlsFile;
-            Controls = LoadControls() ?? ResetControls(new Controls()); 
+            Controls = LoadControls() ?? ResetControls(new Controls());
             Movements = new Movements(Controls);
             Movements.Add(0, -0.04, 0, member: x => x.Plot2.Location.Left);
             Movements.Add(0, -0.04, 0, member: x => Controls.Plot2.Location.Top);
@@ -60,27 +59,16 @@ namespace CompositeVideoOscilloscope {
             return controls;
         }
 
-        public async Task<Controls> Run(int noOfGeneratedBytes) {
+        public async Task<Controls> Run() {
             await Task.Yield();
             var currentTime = Stopwatch.Elapsed.TotalSeconds;
             // var elapsedTime = Controls.VideoStandard.Timing.FrameTime; //currentTime - Controls.CurrentTime;
             var elapsedTime = currentTime - Controls.CurrentTime;
-            Controls.TimeMsCount += (int)(1000 * elapsedTime);
-            if (Controls.TimeMsCount > 200) {
-                Controls.BytesPrSecond = 1000.0 * Controls.ByteCount / Controls.TimeMsCount;
-                Controls.ByteCount = noOfGeneratedBytes;
-                Controls.TimeMsCount %= 200;
-            } else {
-                Controls.ByteCount += noOfGeneratedBytes;
-            }
-
             Controls.CurrentTime = currentTime;
+
             if (Controls.RunMovements) {
                 Movements.Run(Controls, elapsedTime);
             }
-            
-            Console.Write($"\r {Controls.BytesPrSecond / 1e6:F3} Mb/s, command --> ");
-
             if (Commands.Any()) {
                 HandleCommand(Commands.Dequeue());
             }
@@ -114,6 +102,6 @@ namespace CompositeVideoOscilloscope {
             } else if (command == "reset") {
                 ResetControls(Controls);
             }
-}
+        }
     }
 }
