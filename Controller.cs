@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 
 namespace CompositeVideoOscilloscope {
@@ -15,12 +16,12 @@ namespace CompositeVideoOscilloscope {
 
         private readonly string ControlsFile; 
         private readonly Stopwatch Stopwatch = new Stopwatch();
-        private readonly Movements Movements = new Movements();
+        private readonly Movements Movements;
 
         public Controller(string controlsFile = null) {
             ControlsFile = controlsFile;
 
-            Controls = LoadControls() ?? new Controls() {
+            Controls = new Controls() {
                 VideoStandard = VideoStandard.Pal5MhzProgessiv,
                 Plot1 = new PlotControls {
                     SubSamplePlot = false,
@@ -39,11 +40,12 @@ namespace CompositeVideoOscilloscope {
                 RunMovements = true,
                 EnableOutput = true,
             };
+            Movements = new Movements(Controls);
 
-            Movements.Add(0, -0.04, 0, () => Controls.Plot2.Location.Left, d => Controls.Plot2.Location.Left += d);
-            Movements.Add(0, -0.04, 0, () => Controls.Plot2.Location.Top, d => Controls.Plot2.Location.Top += d);
-            Movements.Add(Math.PI / 2, 0.4, 0.01, () => Controls.Plot2.Location.Angle, d => Controls.Plot2.Location.Angle += d);
-            Movements.Add(-Math.PI / 2, -0.2, -0.01, () => Controls.Plot1.Location.Angle, d => Controls.Plot1.Location.Angle += d);
+            Movements.Add(0, -0.04, 0, member: x => x.Plot2.Location.Left);
+            Movements.Add(0, -0.04, 0, x => Controls.Plot2.Location.Top);
+            Movements.Add(Math.PI / 2, 0.4, 0.01, x => Controls.Plot2.Location.Angle);
+            Movements.Add(-Math.PI / 2, -0.2, -0.01, x => Controls.Plot1.Location.Angle);
             Stopwatch.Start();
         }
 
