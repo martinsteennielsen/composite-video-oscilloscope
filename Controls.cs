@@ -42,6 +42,7 @@ namespace CompositeVideoOscilloscope {
         public PlotControls Plot1;
         public PlotControls Plot2;
         public bool RunMovements;
+        public bool RunTime;
         public bool EnableOutput;
     }
 }

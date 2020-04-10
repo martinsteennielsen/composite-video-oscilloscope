@@ -56,6 +56,7 @@ namespace CompositeVideoOscilloscope {
             };
             controls.RunMovements = true;
             controls.EnableOutput = true;
+            controls.RunTime = true;
             return controls;
         }
 
@@ -64,8 +65,9 @@ namespace CompositeVideoOscilloscope {
             var currentTime = Stopwatch.Elapsed.TotalSeconds;
             // var elapsedTime = Controls.VideoStandard.Timing.FrameTime; //currentTime - Controls.CurrentTime;
             var elapsedTime = currentTime - Controls.CurrentTime;
-            Controls.CurrentTime = currentTime;
-
+            if (Controls.RunTime) {
+                Controls.CurrentTime = currentTime;
+            }
             if (Controls.RunMovements) {
                 Movements.Run(Controls, elapsedTime);
             }
@@ -101,6 +103,8 @@ namespace CompositeVideoOscilloscope {
                 Controls.Plot2.SampleBufferLength /= 2;
             } else if (command == "reset") {
                 ResetControls(Controls);
+            } else if (command == "time") {
+                Controls.RunTime = !Controls.RunTime;
             }
         }
     }
