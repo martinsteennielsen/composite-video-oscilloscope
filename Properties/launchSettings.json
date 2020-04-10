@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CompositeVideoOscilloscope": {
+      "commandName": "Project",
+      "commandLineArgs": "c:\\users\\marti\\osc.json"
+    }
+  }
+}

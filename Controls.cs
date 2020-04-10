@@ -22,6 +22,7 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class PlotControls {
+        public int SampleBufferLength;
         public double NumberOfDivisions;
         public (double Time, double Voltage) Offset;
         public (double Time, double Voltage) Units;
