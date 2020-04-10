@@ -21,7 +21,7 @@ namespace CompositeVideoOscilloscope {
         public Controller(string controlsFile = null) {
             ControlsFile = controlsFile;
 
-            Controls = new Controls() {
+            Controls = LoadControls() ?? new Controls() {
                 VideoStandard = VideoStandard.Pal5MhzProgessiv,
                 Plot1 = new PlotControls {
                     SubSamplePlot = false,
@@ -43,9 +43,9 @@ namespace CompositeVideoOscilloscope {
             Movements = new Movements(Controls);
 
             Movements.Add(0, -0.04, 0, member: x => x.Plot2.Location.Left);
-            Movements.Add(0, -0.04, 0, x => Controls.Plot2.Location.Top);
-            Movements.Add(Math.PI / 2, 0.4, 0.01, x => Controls.Plot2.Location.Angle);
-            Movements.Add(-Math.PI / 2, -0.2, -0.01, x => Controls.Plot1.Location.Angle);
+            Movements.Add(0, -0.04, 0, member: x => Controls.Plot2.Location.Top);
+            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plot2.Location.Angle);
+            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plot1.Location.Angle);
             Stopwatch.Start();
         }
 

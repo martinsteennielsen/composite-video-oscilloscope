@@ -12,6 +12,7 @@ namespace CompositeVideoOscilloscope {
         }
 
         readonly List<Movement> Moves = new List<Movement>();
+
         public void Add(double target, double velocity, double acceleration, Expression<Func<Controls, double>> member) {
 
             BinaryExpression assignExp = Expression.AddAssign(member.Body as MemberExpression, Expression.Parameter(typeof(double)));
