@@ -66,5 +66,6 @@
         public int BufPos;
         public int ScreenVoltage;
         public int Value;
+        public long SubSamplePosDivisor;
     }
 }

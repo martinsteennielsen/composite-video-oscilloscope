@@ -1,4 +1,3 @@
-using System;
 
 namespace CompositeVideoOscilloscope {
 
@@ -22,6 +21,7 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class PlotControls {
+        public int SampleBufferLength;
         public double NumberOfDivisions;
         public (double Time, double Voltage) Offset;
         public (double Time, double Voltage) Units;
@@ -39,13 +39,10 @@ namespace CompositeVideoOscilloscope {
     public class Controls {
         public VideoStandard VideoStandard;
         public double CurrentTime;
-        public double BytesPrSecond;
         public PlotControls Plot1;
         public PlotControls Plot2;
-
-        public int TimeMsCount;
-        public int ByteCount;
         public bool RunMovements;
+        public bool RunTime;
         public bool EnableOutput;
     }
 }

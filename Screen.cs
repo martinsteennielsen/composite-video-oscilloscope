@@ -14,8 +14,8 @@ namespace CompositeVideoOscilloscope {
 
         public FrameContent Content =>
             new FrameContent(
-                new SignalPlot(Controls.Plot1, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(0, Controls.CurrentTime)),
-                new SignalPlot(Controls.Plot2, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(1, Controls.CurrentTime))
+                new SignalPlot(Controls.Plot1, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(Controls.Plot1, 0, Controls.CurrentTime)),
+                new SignalPlot(Controls.Plot2, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(Controls.Plot2, 1, Controls.CurrentTime))
             );
 
     }
