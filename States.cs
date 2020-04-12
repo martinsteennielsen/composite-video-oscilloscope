@@ -58,14 +58,13 @@
     }
 
     public class SamplingState {
-        public int DeltaBufPos;
-        public int DeltaBufPosDivisorOverrun;
-        public int BufPosDivisor;
-        public int DeltaBufPosDivisor;
-        public int DeltaScreenVoltage;
         public int BufPos;
+        public int DeltaBufPos;
+        public int BufPosfraction;
+        public int DeltaBufPosFraction;
         public int ScreenVoltage;
+        public int DeltaScreenVoltage;
         public int Value;
-        public long SubSamplePosDivisor;
+        public bool Interpolation;
     }
 }

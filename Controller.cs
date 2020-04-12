@@ -105,6 +105,9 @@ namespace CompositeVideoOscilloscope {
                 ResetControls(Controls);
             } else if (command == "time") {
                 Controls.RunTime = !Controls.RunTime;
+            } else if (command == "interpolate") {
+                Controls.Plot1.Curve = Controls.Plot1.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
+                Controls.Plot2.Curve = Controls.Plot2.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
             }
         }
     }
