@@ -22,20 +22,21 @@ namespace CompositeVideoOscilloscope {
 
             var runningAverage = new Queue<(double, int)>();
 
-            double mbs(double time, int length) {
+            double bps(double time, int length) {
                 runningAverage.Enqueue((time, length));
                 if (runningAverage.Count > 50) { runningAverage.Dequeue(); }
-                return runningAverage.Sum(x => x.Item2) / (runningAverage.Max(x => x.Item1) - runningAverage.Min(x => x.Item1)) / 1e6;
+                return runningAverage.Sum(x => x.Item2) / (runningAverage.Max(x => x.Item1) - runningAverage.Min(x => x.Item1));
             }
 
             while (!canceller.IsCancellationRequested) {
                 var controls = await Controller.Run().ConfigureAwait(false);
-                var videoStandard = VideoConstants.Get(controls.VideoStandard);
-                var frame = new VideoFrame(videoStandard, Screen.Content).Get();
+                var videoConstants = VideoConstants.Get(controls.VideoStandard);
+                var frame = new VideoFrame(videoConstants, Screen.Content).Get();
                 if (controls.EnableOutput) {
-                    Output.Send(frame, sampleRate: videoStandard.Timing.BandwidthFreq);
+                    Output.Send(frame, sampleRate: videoConstants.Timing.BandwidthFreq);
                 }
-                Console.Write($"\r {mbs(controls.CurrentTime, frame.Length):F3} Mb/s, command --> ");
+                var _bps = bps(controls.CurrentTime, frame.Length);
+                Console.Write($"\r {_bps / 1e6:F3} Mb/s, {_bps / frame.Length:F0} fps, command --> ");
             }
         }
     }
