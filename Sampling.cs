@@ -5,16 +5,19 @@ namespace CompositeVideoOscilloscope {
     public class Sampling {
         const int ns = (int)1e9;
         readonly int SampleTimeNs;
+        readonly int SampleTimeNsRoot;
         readonly int[] Buffer;
         readonly int[] SlopeBuffer;
 
         public Sampling(int[] buffer, double sampleTime) {
             Buffer = buffer;
-            SlopeBuffer = new int[buffer.Length];
-            for (int a = 0; a < buffer.Length - 2; a++) {
-                SlopeBuffer[a] = Buffer[a + 1] - Buffer[a];
+            SampleTimeNsRoot = (int)Math.Sqrt(ns * sampleTime);
+            var bufLen = buffer.Length;
+            SlopeBuffer = new int[bufLen];
+            for (int a = 0; a < bufLen - 1; a++) {
+                SlopeBuffer[a] = (Buffer[a + 1] - Buffer[a])/SampleTimeNsRoot;
             }
-            SlopeBuffer[buffer.Length - 1] = SlopeBuffer[buffer.Length - 2];
+            SlopeBuffer[bufLen - 1] = SlopeBuffer[bufLen - 2];
             SampleTimeNs = (int)(ns * sampleTime);
         }
 
@@ -39,18 +42,14 @@ namespace CompositeVideoOscilloscope {
         private int InterpolateTime(int v0, int v1, int vt) =>
             (((vt - v0) << 8) / (v1 + v0)) >> 8;
 
-        public void ResetState(SamplingState current, (int t, int v) start, (int t, int v) delta) {
-            var deltaMod = delta.t % SampleTimeNs;
-            var startFrac = Math.Abs(start.t % SampleTimeNs);
-            current.BufPos = start.t / SampleTimeNs;
-            current.DeltaBufPos = (delta.t / SampleTimeNs);
-            current.DeltaBufPosDivisor = Math.Abs(deltaMod);
-            current.DeltaBufPosDivisorOverrun = deltaMod > 0 ? 1 : -1;
-            current.BufPosDivisor = deltaMod > 0 ? SampleTimeNs - startFrac : startFrac;
-            current.DeltaScreenVoltage = delta.v;
+        public void ResetState(SamplingState current, (int t, int v) start, (int t, int v) delta, bool interpolate) {
             current.ScreenVoltage = start.v;
-            current.SubSamplePosDivisor = current.DeltaBufPosDivisorOverrun == 1 ?
-                current.BufPosDivisor : SampleTimeNs - current.BufPosDivisor;
+            current.DeltaScreenVoltage = delta.v;
+            current.BufPos = start.t / SampleTimeNs;
+            current.BufPosfraction = start.t % SampleTimeNs / SampleTimeNsRoot;
+            current.DeltaBufPos = delta.t / SampleTimeNs;
+            current.DeltaBufPosFraction = delta.t % SampleTimeNs / SampleTimeNsRoot;
+            current.Interpolation = interpolate;
             SetCurrentValue(current);
         }
 
@@ -59,21 +58,21 @@ namespace CompositeVideoOscilloscope {
 
             current.ScreenVoltage += current.DeltaScreenVoltage;
             current.BufPos += current.DeltaBufPos;
-            current.BufPosDivisor -= current.DeltaBufPosDivisor;
-            if (current.BufPosDivisor <= 0) {
-                current.BufPosDivisor += SampleTimeNs;
-                current.BufPos += current.DeltaBufPosDivisorOverrun;
+            current.BufPosfraction += current.DeltaBufPosFraction;
+            if (current.BufPosfraction <= 0) {
+                current.BufPosfraction += SampleTimeNsRoot;
+                current.BufPos--;
+            } else if (current.BufPosfraction > SampleTimeNsRoot) {
+                current.BufPosfraction -= SampleTimeNsRoot;
+                current.BufPos++;
             }
-            current.SubSamplePosDivisor = current.DeltaBufPosDivisorOverrun == 1 ?
-                SampleTimeNs - current.BufPosDivisor : current.BufPosDivisor;
-
             return current.Value;
         }
 
         private void SetCurrentValue(SamplingState current) {
             if (current.BufPos >= 0 && current.BufPos < Buffer.Length) {
-                var delta = SlopeBuffer[current.BufPos] * current.SubSamplePosDivisor / SampleTimeNs;
-                current.Value = current.ScreenVoltage  > delta + Buffer[current.BufPos] ? 1 : -1;
+                var interpolationDelta = current.Interpolation ? SlopeBuffer[current.BufPos] * current.BufPosfraction : 0;
+                current.Value = current.ScreenVoltage  > interpolationDelta + Buffer[current.BufPos] ? 1 : -1;
             } else {
                 current.Value = 8;
             }

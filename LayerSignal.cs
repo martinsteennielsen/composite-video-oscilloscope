@@ -28,29 +28,29 @@ namespace CompositeVideoOscilloscope {
                 : (Func<SignalLayerState, int>)(state => _GetNext(state.SamplingState));
 
             ResetState = controls.SubSamplePlot
-                ? (state, x, y) => _ResetState(state.SubSamplingState, x, y)
-                : (Action<SignalLayerState, int, int>)((state, x, y) => _ResetState(state.SamplingState, x, y));
+                ? (state, x, y) => _ResetState(state.SubSamplingState, x, y, interpolate: controls.Curve == Curve.Line)
+                : (Action<SignalLayerState, int, int>)((state, x, y) => _ResetState(state.SamplingState, x, y, interpolate: controls.Curve == Curve.Line));
         }
 
         (int, int) Subtract((int, int) a, (int, int) b) =>
             (a.Item1 - b.Item1, a.Item2 - b.Item2);
 
-        void _ResetState(SignalLayerSamplingState current, int startX, int startY) {
-            Sample.ResetState(current.A, View.TransformD(startX - 0.5, startY), Delta);
-            Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY), Delta);
-            Sample.ResetState(current.C, View.TransformD(startX, startY - 0.5), delta: Delta);
-            Sample.ResetState(current.D, View.TransformD(startX, startY + 0.5), Delta);
+        void _ResetState(SignalLayerSamplingState current, int startX, int startY, bool interpolate) {
+            Sample.ResetState(current.A, View.TransformD(startX - 0.5, startY), Delta, interpolate);
+            Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY), Delta, interpolate);
+            Sample.ResetState(current.C, View.TransformD(startX, startY - 0.5), Delta, interpolate);
+            Sample.ResetState(current.D, View.TransformD(startX, startY + 0.5), Delta, interpolate);
             current.a = current.b = current.c = current.d = 8;
         }
 
-        void _ResetState(SignalLayerSubSamplingState current, int startX, int startY) {
-            Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY - 1), Delta);
-            Sample.ResetState(current.F, View.TransformD(startX + 0.5, startY - 0.5), Delta);
-            Sample.ResetState(current.I, View.TransformD(startX + 0.5, startY), delta: Delta);
-            Sample.ResetState(current.M, View.TransformD(startX + 0.5, startY + 0.5), Delta);
-            Sample.ResetState(current.P, View.TransformD(startX + 0.5, startY + 1), Delta);
-            Sample.ResetState(current.G, View.TransformD(startX + 1, startY - 0.5), Delta);
-            Sample.ResetState(current.N, View.TransformD(startX + 1, startY + 0.5), Delta);
+        void _ResetState(SignalLayerSubSamplingState current, int startX, int startY, bool interpolate) {
+            Sample.ResetState(current.B, View.TransformD(startX + 0.5, startY - 1), Delta, interpolate);
+            Sample.ResetState(current.F, View.TransformD(startX + 0.5, startY - 0.5), Delta, interpolate);
+            Sample.ResetState(current.I, View.TransformD(startX + 0.5, startY), Delta, interpolate);
+            Sample.ResetState(current.M, View.TransformD(startX + 0.5, startY + 0.5), Delta, interpolate);
+            Sample.ResetState(current.P, View.TransformD(startX + 0.5, startY + 1), Delta, interpolate);
+            Sample.ResetState(current.G, View.TransformD(startX + 1, startY - 0.5), Delta, interpolate);
+            Sample.ResetState(current.N, View.TransformD(startX + 1, startY + 0.5), Delta, interpolate);
             current.a = current.b = current.c = current.d = current.e = current.f = current.g = current.h = current.i = current.j = current.k = current.l = current.n = current.o = current.p = 8;
         }
 

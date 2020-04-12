@@ -14,10 +14,10 @@ namespace CompositeVideoOscilloscope {
         public double Angle;
     }
 
-    public enum SubSampleRender {
-        ConnectStairs = 0,
-        ConnectLine = 1,
-        NotConnected = 2,
+    public enum Curve {
+        Stairs = 0,
+        Line = 1,
+        Dots = 2,
     }
 
     public class PlotControls {
@@ -31,7 +31,7 @@ namespace CompositeVideoOscilloscope {
         public int IntensityBackground = 0x20;
         public int IntensitySignal = 0xFF;
         public bool SubSamplePlot = false;
-        public SubSampleRender SubSamplePoints = SubSampleRender.ConnectLine;
+        public Curve Curve = Curve.Line;
         public LocationControls Location;
     }
 
