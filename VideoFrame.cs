@@ -6,14 +6,14 @@ namespace CompositeVideoOscilloscope {
     using static VideoConstants;
 
     public class VideoFrame {
-        private readonly VideoConstants Standard;
+        private readonly VideoConstants VideoConstants;
         private readonly FrameContent Content;
         private readonly long SampleTimePs;
 
-        public VideoFrame(VideoConstants standard, FrameContent content) {
-            Standard = standard;
+        public VideoFrame(VideoConstants constants, FrameContent content) {
+            VideoConstants = constants;
             Content = content;
-            SampleTimePs = (long)((long)1e12 * Standard.Timing.DotTime);
+            SampleTimePs = (long)((long)1e12 * VideoConstants.Timing.DotTime);
         }
 
         public byte[] Get() =>
@@ -30,18 +30,18 @@ namespace CompositeVideoOscilloscope {
 
         List<byte> GetNextLine(LineState currentLine) {
             var output = new List<byte>(320);
-            var lineSegments = Standard.LineBlocks[currentLine.LineBlockCount].LineSegments;
+            var lineSegments = VideoConstants.LineBlocks[currentLine.LineBlockCount].LineSegments;
             while (!currentLine.PixelState.Finished) {
                 output.Add(GetNextPixel(currentLine.PixelState, lineSegments));
             }
-            currentLine.LineNumber += Standard.LineBlocks[currentLine.LineBlockCount].dy;
+            currentLine.LineNumber += VideoConstants.LineBlocks[currentLine.LineBlockCount].dy;
             currentLine.LineCnt++;
-            if (currentLine.LineCnt >= Standard.LineBlocks[currentLine.LineBlockCount].Count) {
+            if (currentLine.LineCnt >= VideoConstants.LineBlocks[currentLine.LineBlockCount].Count) {
                 currentLine.LineCnt = 0;
                 currentLine.LineBlockCount++;
-                currentLine.Finished = !(currentLine.LineBlockCount < Standard.LineBlocks.Length && currentLine.LineCnt < Standard.LineBlocks[currentLine.LineBlockCount].Count);
+                currentLine.Finished = !(currentLine.LineBlockCount < VideoConstants.LineBlocks.Length && currentLine.LineCnt < VideoConstants.LineBlocks[currentLine.LineBlockCount].Count);
                 if (!currentLine.Finished) {
-                    currentLine.LineNumber = Standard.LineBlocks[currentLine.LineBlockCount].sy;
+                    currentLine.LineNumber = VideoConstants.LineBlocks[currentLine.LineBlockCount].sy;
                 }
             }
             return output;
@@ -73,11 +73,11 @@ namespace CompositeVideoOscilloscope {
         }
 
         byte ToVideoLevel(int contentValue) {
-            int vres = contentValue * (255 - Standard.BlackLevel);
+            int vres = contentValue * (255 - VideoConstants.BlackLevel);
             vres /= 255;
-            vres += Standard.BlackLevel;
-            vres = vres > 255 ? 255 : Math.Max(Standard.BlackLevel, vres);
-            return contentValue == 0 ? (byte)Standard.BlackLevel : (byte)vres;
+            vres += VideoConstants.BlackLevel;
+            vres = vres > 255 ? 255 : Math.Max(VideoConstants.BlackLevel, vres);
+            return contentValue == 0 ? (byte)VideoConstants.BlackLevel : (byte)vres;
         }
     }
 }

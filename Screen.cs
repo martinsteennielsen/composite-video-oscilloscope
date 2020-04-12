@@ -34,7 +34,7 @@ namespace CompositeVideoOscilloscope {
             bool visible2 = Plot2.Visible(current.LocationX, current.LocationY);
 
             if (visible1 && !current.Plot1Visible) {
-               Plot1.ResetState(current.Plot1State, current.LocationX, current.LocationY);
+                Plot1.ResetState(current.Plot1State, current.LocationX, current.LocationY);
                 current.Plot1Visible = true;
             } else if (!visible1 && current.Plot1Visible) {
                 current.Plot1Visible = false;
@@ -56,9 +56,9 @@ namespace CompositeVideoOscilloscope {
             Plot2.ResetState(current.Plot2State, 0, lineNo);
         }
 
-        
+
         public int Get(ContentState current) =>
-            !current.Plot1Visible  && !current.Plot2Visible  ? 0
+            !current.Plot1Visible && !current.Plot2Visible ? 0
             : !current.Plot1Visible ? Plot2.GetNext(current.Plot2State)
             : !current.Plot2Visible ? Plot1.GetNext(current.Plot1State)
             : Blend(Plot1.GetNext(current.Plot1State), Plot2.GetNext(current.Plot2State), 50);

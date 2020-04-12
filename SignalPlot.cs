@@ -7,8 +7,8 @@ namespace CompositeVideoOscilloscope {
         readonly LayerAxis LayerAxis;
         readonly PlotControls Controls;
 
-        public SignalPlot(PlotControls controls, VideoConstants standard, Sampling sampling) {
-            Viewport = new Viewport(standard.VisibleWidth * controls.Location.Left, standard.VisibleHeight * controls.Location.Top, standard.VisibleWidth * controls.Location.Right, standard.VisibleHeight * controls.Location.Bottom);
+        public SignalPlot(PlotControls controls, VideoConstants constants, Sampling sampling) {
+            Viewport = new Viewport(constants.VisibleWidth * controls.Location.Left, constants.VisibleHeight * controls.Location.Top, constants.VisibleWidth * controls.Location.Right, constants.VisibleHeight * controls.Location.Bottom);
             LayerSignal = new LayerSignal(Viewport, sampling, controls, controls.Location.Angle);
             LayerAxis = new LayerAxis(Viewport, controls.NumberOfDivisions, controls.Location.Angle);
             Controls = controls;

@@ -15,7 +15,7 @@ namespace CompositeVideoOscilloscope {
             var bufLen = buffer.Length;
             SlopeBuffer = new int[bufLen];
             for (int a = 0; a < bufLen - 1; a++) {
-                SlopeBuffer[a] = (Buffer[a + 1] - Buffer[a])/SampleTimeNsRoot;
+                SlopeBuffer[a] = (Buffer[a + 1] - Buffer[a]) / SampleTimeNsRoot;
             }
             SlopeBuffer[bufLen - 1] = SlopeBuffer[bufLen - 2];
             SampleTimeNs = (int)(ns * sampleTime);
@@ -50,11 +50,11 @@ namespace CompositeVideoOscilloscope {
             current.DeltaBufPos = delta.t / SampleTimeNs;
             current.DeltaBufPosFraction = delta.t % SampleTimeNs / SampleTimeNsRoot;
             current.Interpolation = interpolate;
-            SetCurrentValue(current);
+            SetValue(current);
         }
 
         public int GetNext(SamplingState current) {
-            SetCurrentValue(current);
+            SetValue(current);
 
             current.ScreenVoltage += current.DeltaScreenVoltage;
             current.BufPos += current.DeltaBufPos;
@@ -69,15 +69,17 @@ namespace CompositeVideoOscilloscope {
             return current.Value;
         }
 
-        private void SetCurrentValue(SamplingState current) {
-            if (current.BufPos >= 0 && current.BufPos < Buffer.Length) {
-                var interpolationDelta = current.Interpolation ? SlopeBuffer[current.BufPos] * current.BufPosfraction : 0;
-                current.Value = current.ScreenVoltage  > interpolationDelta + Buffer[current.BufPos] ? 1 : -1;
-            } else {
+        private void SetValue(SamplingState current) {
+            if (current.BufPos < 0) {
                 current.Value = 8;
+            } else if (current.BufPos >= Buffer.Length) {
+                current.Value = 8;
+            } else if (current.Interpolation) {
+                var interpolationDelta = SlopeBuffer[current.BufPos] * current.BufPosfraction;
+                current.Value = current.ScreenVoltage > interpolationDelta + Buffer[current.BufPos] ? 1 : -1;
+            } else {
+                current.Value = current.ScreenVoltage > Buffer[current.BufPos] ? 1 : -1;
             }
         }
-
-
     }
 }
