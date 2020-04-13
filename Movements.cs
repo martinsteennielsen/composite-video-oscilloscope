@@ -27,9 +27,12 @@ namespace CompositeVideoOscilloscope {
 
         private void Add(double target, double velocity, double acceleration, Func<double> position, Action<double> move) =>
             Moves.Add(new Movement() { Target = target, Position=position, Move=move, Accelaration = acceleration, Velocity = velocity});
+        
+        public void Finish() =>
+            Run(elapsedTime: -1);
 
-        public void Run(Controls controls, double elpasedTime) {
-            Moves.ForEach(m=>m.Run(elpasedTime));
+        public void Run(double elapsedTime) {
+            Moves.ForEach(m=>m.Run(elapsedTime));
             Moves.RemoveAll(m=>m.IsFinished);
         }
     } 
@@ -43,17 +46,22 @@ namespace CompositeVideoOscilloscope {
          public bool IsFinished;
 
         public void Run(double elpasedTime) {
-            Velocity += Accelaration * elpasedTime;
-            var delta = Velocity * elpasedTime;
-            var current = Position();
-
-            if (current + delta != Target) {
-                Move(delta);
+            if (elpasedTime == -1) {
+                Move(Target);
+                IsFinished = true;
             } else {
-                Move(Target - current);
-                Velocity = -Velocity;
+                Velocity += Accelaration * elpasedTime;
+                var delta = Velocity * elpasedTime;
+                var current = Position();
+
+                if (current + delta != Target) {
+                    Move(delta);
+                } else {
+                    Move(Target - current);
+                    Velocity = -Velocity;
+                }
+                IsFinished = current == Target && Math.Abs(Velocity) < 0.01;
             }
-            IsFinished = current == Target && Math.Abs(Velocity)<0.01;
         }
     }
 }

@@ -19,13 +19,9 @@ namespace CompositeVideoOscilloscope {
         private readonly Movements Movements;
 
         public Controller(string controlsFile = null) {
-            Movements = new Movements(Controls);
             ControlsFile = controlsFile;
             Controls = LoadControls() ?? ResetControls(new Controls());
-            //Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
-            //Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
-            //Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
-            //Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plots[0].Location.Angle);
+            Movements = new Movements(Controls);
             Stopwatch.Start();
         }
 
@@ -37,7 +33,7 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-        private static Controls ResetControls(Controls controls) {
+        private Controls ResetControls(Controls controls) {
             controls.VideoStandard = VideoStandard.Pal5MhzProgessiv;
             controls.Plots = new List<PlotControls> {
                 new PlotControls {
@@ -62,6 +58,15 @@ namespace CompositeVideoOscilloscope {
             controls.RunMovements = true;
             controls.EnableOutput = true;
             controls.RunTime = true;
+
+            Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
+            Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
+            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
+            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plots[0].Location.Angle);
+
+            Stopwatch.Restart();
+            controls.CurrentTime = 0;
+
             return controls;
         }
 
@@ -74,7 +79,7 @@ namespace CompositeVideoOscilloscope {
                 Controls.CurrentTime = currentTime;
             }
             if (Controls.RunMovements) {
-                Movements.Run(Controls, elapsedTime);
+                Movements.Run(elapsedTime);
             }
             if (Commands.Any()) {
                 HandleCommand(Commands.Dequeue());
@@ -98,12 +103,14 @@ namespace CompositeVideoOscilloscope {
                 (Controls.VideoStandard == VideoStandard.Pal5MhzProgessiv
                 ? VideoStandard.Pal5MhzInterlaced : VideoStandard.Pal5MhzProgessiv);
             } else if (command == "save") {
+                Movements.Finish();
                 File.WriteAllText(ControlsFile, JsonConvert.SerializeObject(Controls, Formatting.Indented));
             } else if (command == "morebuf") {
                 Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength *=2);
             } else if (command == "lessbuf") {
                 Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength /= 2);
             } else if (command == "reset") {
+                Movements.Finish();
                 ResetControls(Controls);
             } else if (command == "time") {
                 Controls.RunTime = !Controls.RunTime;
