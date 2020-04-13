@@ -31,11 +31,11 @@ namespace CompositeVideoOscilloscope {
             current.LocationX++;
             for (int p = 0; p < Plots.Length; p++) {
                 var visible = Plots[p].Visible(current.LocationX, current.LocationY);
-                if (visible && !current.PlotsVisible[p]) {
+                if (visible && !current.PlotStates[p].Visible) {
                     Plots[p].ResetState(current.PlotStates[p], current.LocationX, current.LocationY);
-                    current.PlotsVisible[p] = true;
-                } else if (!visible && current.PlotsVisible[p]) {
-                    current.PlotsVisible[p] = false;
+                    current.PlotStates[p].Visible = true;
+                } else if (!visible && current.PlotStates[p].Visible) {
+                    current.PlotStates[p].Visible = false;
                 }
             }
         }
@@ -44,7 +44,6 @@ namespace CompositeVideoOscilloscope {
             current.LocationY = lineNo;
             current.LocationX = 0;
             for (int p = 0; p < Plots.Length; p++) {
-                current.PlotsVisible[p] = false;
                 Plots[p].ResetState(current.PlotStates[p], 0, lineNo);
             }
         }
@@ -60,7 +59,7 @@ namespace CompositeVideoOscilloscope {
 
             int sum = -1;
             for (int p = 0; p < Plots.Length; p++) {
-                if (current.PlotsVisible[p]) {
+                if (current.PlotStates[p].Visible) {
                     sum = sum == -1 ? get(p) : blend(sum, get(p), 50);
                 }
             }

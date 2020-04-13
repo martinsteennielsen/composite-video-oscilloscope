@@ -19,11 +19,11 @@ namespace CompositeVideoOscilloscope {
 
     public class ContentState {
         public int LocationX, LocationY;
-        public bool[] PlotsVisible = new bool[Controller.MaxPlots];
         public PlotState[] PlotStates = Array.ConvertAll(new PlotState[Controller.MaxPlots], v => new PlotState());
     }
 
     public class PlotState {
+        public bool Visible;
         public AxisLayerState AxisState = new AxisLayerState();
         public SignalLayerState SignalState = new SignalLayerState();
     }

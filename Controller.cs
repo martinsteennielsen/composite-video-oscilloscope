@@ -22,10 +22,10 @@ namespace CompositeVideoOscilloscope {
             Movements = new Movements(Controls);
             ControlsFile = controlsFile;
             Controls = LoadControls() ?? ResetControls(new Controls());
-            Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
-            Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
-            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
-            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plots[0].Location.Angle);
+            //Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
+            //Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
+            //Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
+            //Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plots[0].Location.Angle);
             Stopwatch.Start();
         }
 
