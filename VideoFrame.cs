@@ -20,7 +20,7 @@ namespace CompositeVideoOscilloscope {
             GetLines().SelectMany(x => x).ToArray();
 
         private IEnumerable<List<byte>> GetLines() {
-            var currentLine = new LineState();
+            var currentLine = new LineState(noOfPlots: 2);
             while (!currentLine.Finished) {
                 ResetPixelState(currentLine.PixelState, currentLine.LineNumber);
                 yield return GetNextLine(currentLine);

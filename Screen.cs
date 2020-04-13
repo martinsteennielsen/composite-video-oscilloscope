@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CompositeVideoOscilloscope {
 
@@ -21,47 +22,52 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class FrameContent {
-        readonly SignalPlot Plot1, Plot2;
+        readonly SignalPlot[] Plots;
 
-        public FrameContent(SignalPlot plot1, SignalPlot plot2) {
-            Plot1 = plot1;
-            Plot2 = plot2;
+        public FrameContent(params SignalPlot[] plots) {
+            Plots = plots;
         }
 
         public void Next(ContentState current) {
             current.LocationX++;
-            bool visible1 = Plot1.Visible(current.LocationX, current.LocationY);
-            bool visible2 = Plot2.Visible(current.LocationX, current.LocationY);
-
-            if (visible1 && !current.Plot1Visible) {
-                Plot1.ResetState(current.Plot1State, current.LocationX, current.LocationY);
-                current.Plot1Visible = true;
-            } else if (!visible1 && current.Plot1Visible) {
-                current.Plot1Visible = false;
-            }
-            if (visible2 && !current.Plot2Visible) {
-                Plot2.ResetState(current.Plot2State, current.LocationX, current.LocationY);
-                current.Plot2Visible = true;
-            } else if (!visible2 && current.Plot2Visible) {
-                current.Plot2Visible = false;
+            for (int p = 0; p < Plots.Length; p++) {
+                var visible = Plots[p].Visible(current.LocationX, current.LocationY);
+                if (visible && !current.PlotsVisible[p]) {
+                    Plots[p].ResetState(current.PlotStates[p], current.LocationX, current.LocationY);
+                    current.PlotsVisible[p] = true;
+                } else if (!visible && current.PlotsVisible[p]) {
+                    current.PlotsVisible[p] = false;
+                }
             }
         }
 
         public void ResetState(ContentState current, int lineNo) {
             current.LocationY = lineNo;
             current.LocationX = 0;
-            current.Plot1Visible = false;
-            current.Plot2Visible = false;
-            Plot1.ResetState(current.Plot1State, 0, lineNo);
-            Plot2.ResetState(current.Plot2State, 0, lineNo);
+            for (int p = 0; p < Plots.Length; p++) {
+                current.PlotsVisible[p] = false;
+                Plots[p].ResetState(current.PlotStates[p], 0, lineNo);
+            }
         }
 
 
-        public int Get(ContentState current) =>
-            !current.Plot1Visible && !current.Plot2Visible ? 0
-            : !current.Plot1Visible ? Plot2.GetNext(current.Plot2State)
-            : !current.Plot2Visible ? Plot1.GetNext(current.Plot1State)
-            : Blend(Plot1.GetNext(current.Plot1State), Plot2.GetNext(current.Plot2State), 50);
+        public int Get(ContentState current) {
+            int sum = -1;
+            for (int p = 0; p < Plots.Length; p++) {
+                if (current.PlotsVisible[p]) {
+                    if (sum == -1) {
+                        sum = Plots[p].GetNext(current.PlotStates[p]);
+                    } else {
+                        sum = Blend(sum, Plots[p].GetNext(current.PlotStates[p]), 50);
+                    }
+                }
+            }
+            return sum;
+        }
+        // !current.Plot1Visible && !current.Plot2Visible ? 0
+        // : !current.Plot1Visible ? Plot2.GetNext(current.Plot2State)
+        // : !current.Plot2Visible ? Plot1.GetNext(current.Plot1State)
+        // : Blend(Plot1.GetNext(current.Plot1State), Plot2.GetNext(current.Plot2State), 50);
 
         private int Blend(int intensityA, int intensityB, int alpha) =>
             intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
