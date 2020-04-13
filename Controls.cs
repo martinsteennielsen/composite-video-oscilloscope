@@ -43,7 +43,7 @@ namespace CompositeVideoOscilloscope {
         public VideoStandard VideoStandard;
         public double CurrentTime;
         public List<PlotControls> Plots;
-        public bool RunMovements;
+        public bool RunMoves;
         public bool RunTime;
         public bool EnableOutput;
     }
