@@ -59,6 +59,7 @@ namespace CompositeVideoOscilloscope {
             controls.EnableOutput = true;
             controls.RunTime = true;
 
+            Movements.Finish();
             Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
             Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
             Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
@@ -103,14 +104,12 @@ namespace CompositeVideoOscilloscope {
                 (Controls.VideoStandard == VideoStandard.Pal5MhzProgessiv
                 ? VideoStandard.Pal5MhzInterlaced : VideoStandard.Pal5MhzProgessiv);
             } else if (command == "save") {
-                Movements.Finish();
                 File.WriteAllText(ControlsFile, JsonConvert.SerializeObject(Controls, Formatting.Indented));
             } else if (command == "morebuf") {
                 Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength *=2);
             } else if (command == "lessbuf") {
                 Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength /= 2);
             } else if (command == "reset") {
-                Movements.Finish();
                 ResetControls(Controls);
             } else if (command == "time") {
                 Controls.RunTime = !Controls.RunTime;

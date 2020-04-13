@@ -13,21 +13,22 @@ namespace CompositeVideoOscilloscope {
             Aquisition = aquisition;
         }
 
-        public FrameContent Content =>
-            new FrameContent(
+        public Content Content =>
+            new Content(
                 Controls.Plots.Select(ctrl => new SignalPlot(ctrl, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(ctrl, Controls.CurrentTime)))
                 );
 
     }
 
-    public class FrameContent {
+    public class Content {
         readonly SignalPlot[] Plots;
 
-        public FrameContent(IEnumerable<SignalPlot> plots) {
+        public Content(IEnumerable<SignalPlot> plots) {
             Plots = plots.ToArray();
         }
 
-        public void Next(ContentState current) {
+        public int GetNext(ContentState current) {
+            var value = Get(current);
             current.LocationX++;
             for (int p = 0; p < Plots.Length; p++) {
                 var visible = Plots[p].Visible(current.LocationX, current.LocationY);
@@ -38,6 +39,7 @@ namespace CompositeVideoOscilloscope {
                     current.PlotStates[p].Visible = false;
                 }
             }
+            return value;
         }
 
         public void ResetState(ContentState current, int lineNo) {
@@ -48,15 +50,7 @@ namespace CompositeVideoOscilloscope {
             }
         }
 
-
-        public int Get(ContentState current) {
-
-            int blend(int intensityA, int intensityB, int alpha) =>
-                intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
-
-            int get(int p) =>
-                Plots[p].GetNext(current.PlotStates[p]);
-
+        int Get(ContentState current) {
             int sum = -1;
             for (int p = 0; p < Plots.Length; p++) {
                 if (current.PlotStates[p].Visible) {
@@ -64,8 +58,13 @@ namespace CompositeVideoOscilloscope {
                 }
             }
             return sum;
-        }
 
+            int blend(int intensityA, int intensityB, int alpha) =>
+                intensityA + (intensityB - intensityA) * alpha / 0xFF;
+
+            int get(int p) =>
+                Plots[p].GetNext(current.PlotStates[p]);
+        }
     }
 }
 
