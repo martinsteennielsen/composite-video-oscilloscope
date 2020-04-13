@@ -1,4 +1,6 @@
 
+using System.Collections.Generic;
+
 namespace CompositeVideoOscilloscope {
 
     public class TriggerControls {
@@ -21,6 +23,7 @@ namespace CompositeVideoOscilloscope {
     }
 
     public class PlotControls {
+        public int Channel;
         public int SampleBufferLength;
         public double NumberOfDivisions;
         public (double Time, double Voltage) Offset;
@@ -39,8 +42,7 @@ namespace CompositeVideoOscilloscope {
     public class Controls {
         public VideoStandard VideoStandard;
         public double CurrentTime;
-        public PlotControls Plot1;
-        public PlotControls Plot2;
+        public List<PlotControls> Plots;
         public bool RunMovements;
         public bool RunTime;
         public bool EnableOutput;

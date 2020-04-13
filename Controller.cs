@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace CompositeVideoOscilloscope {
 
     public class Controller {
+        public static int MaxPlots = 8;
         public readonly Controls Controls;
         public readonly Queue<string> Commands = new Queue<string>();
 
@@ -18,13 +19,13 @@ namespace CompositeVideoOscilloscope {
         private readonly Movements Movements;
 
         public Controller(string controlsFile = null) {
+            Movements = new Movements(Controls);
             ControlsFile = controlsFile;
             Controls = LoadControls() ?? ResetControls(new Controls());
-            Movements = new Movements(Controls);
-            Movements.Add(0, -0.04, 0, member: x => x.Plot2.Location.Left);
-            Movements.Add(0, -0.04, 0, member: x => Controls.Plot2.Location.Top);
-            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plot2.Location.Angle);
-            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plot1.Location.Angle);
+            Movements.Add(0, -0.04, 0, member: x => x.Plots[1].Location.Left);
+            Movements.Add(0, -0.04, 0, member: x => Controls.Plots[1].Location.Top);
+            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plots[1].Location.Angle);
+            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plots[0].Location.Angle);
             Stopwatch.Start();
         }
 
@@ -38,21 +39,25 @@ namespace CompositeVideoOscilloscope {
 
         private static Controls ResetControls(Controls controls) {
             controls.VideoStandard = VideoStandard.Pal5MhzProgessiv;
-            controls.Plot1 = new PlotControls {
-                SampleBufferLength = 1000,
-                SubSamplePlot = false,
-                NumberOfDivisions = 10,
-                Units = (.005, 0.5),
-                Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
-                Location = new LocationControls { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle = 0 }
-            };
-            controls.Plot2 = new PlotControls {
-                SampleBufferLength = 1000,
-                SubSamplePlot = false,
-                NumberOfDivisions = 10,
-                Units = (.005, 0.5),
-                Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
-                Location = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle = 0 }
+            controls.Plots = new List<PlotControls> {
+                new PlotControls {
+                    Channel = 0,
+                    SampleBufferLength = 1000,
+                    SubSamplePlot = false,
+                    NumberOfDivisions = 10,
+                    Units = (.005, 0.5),
+                    Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
+                    Location = new LocationControls { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle = 0 }
+                },
+                new PlotControls {
+                    Channel = 1,
+                    SampleBufferLength = 1000,
+                    SubSamplePlot = false,
+                    NumberOfDivisions = 10,
+                    Units = (.005, 0.5),
+                    Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
+                    Location = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle = 0 }
+                }
             };
             controls.RunMovements = true;
             controls.EnableOutput = true;
@@ -79,8 +84,7 @@ namespace CompositeVideoOscilloscope {
 
         void HandleCommand(string command) {
             if (command == "s") {
-                Controls.Plot1.SubSamplePlot = !Controls.Plot1.SubSamplePlot;
-                Controls.Plot2.SubSamplePlot = !Controls.Plot2.SubSamplePlot;
+                Controls.Plots.ForEach(ctrl => ctrl.SubSamplePlot = !ctrl.SubSamplePlot);
             } else if (command == "f") {
                 Controls.RunMovements = !Controls.RunMovements;
             } else if (command == "o") {
@@ -96,18 +100,15 @@ namespace CompositeVideoOscilloscope {
             } else if (command == "save") {
                 File.WriteAllText(ControlsFile, JsonConvert.SerializeObject(Controls, Formatting.Indented));
             } else if (command == "morebuf") {
-                Controls.Plot1.SampleBufferLength *= 2;
-                Controls.Plot2.SampleBufferLength *= 2;
+                Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength *=2);
             } else if (command == "lessbuf") {
-                Controls.Plot1.SampleBufferLength /= 2;
-                Controls.Plot2.SampleBufferLength /= 2;
+                Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength /= 2);
             } else if (command == "reset") {
                 ResetControls(Controls);
             } else if (command == "time") {
                 Controls.RunTime = !Controls.RunTime;
             } else if (command == "interpolate") {
-                Controls.Plot1.Curve = Controls.Plot1.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
-                Controls.Plot2.Curve = Controls.Plot2.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
+                Controls.Plots.ForEach(ctrl => ctrl.Curve = ctrl.Curve == Curve.Line ? Curve.Stairs : Curve.Line);
             }
         }
     }

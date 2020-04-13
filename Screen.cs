@@ -15,17 +15,16 @@ namespace CompositeVideoOscilloscope {
 
         public FrameContent Content =>
             new FrameContent(
-                new SignalPlot(Controls.Plot1, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(Controls.Plot1, 0, Controls.CurrentTime)),
-                new SignalPlot(Controls.Plot2, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(Controls.Plot2, 1, Controls.CurrentTime))
-            );
+                Controls.Plots.Select(ctrl => new SignalPlot(ctrl, VideoConstants.Get(Controls.VideoStandard), sampling: Aquisition.GetSampling(ctrl, Controls.CurrentTime)))
+                );
 
     }
 
     public class FrameContent {
         readonly SignalPlot[] Plots;
 
-        public FrameContent(params SignalPlot[] plots) {
-            Plots = plots;
+        public FrameContent(IEnumerable<SignalPlot> plots) {
+            Plots = plots.ToArray();
         }
 
         public void Next(ContentState current) {
@@ -52,25 +51,22 @@ namespace CompositeVideoOscilloscope {
 
 
         public int Get(ContentState current) {
+
+            int blend(int intensityA, int intensityB, int alpha) =>
+                intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
+
+            int get(int p) =>
+                Plots[p].GetNext(current.PlotStates[p]);
+
             int sum = -1;
             for (int p = 0; p < Plots.Length; p++) {
                 if (current.PlotsVisible[p]) {
-                    if (sum == -1) {
-                        sum = Plots[p].GetNext(current.PlotStates[p]);
-                    } else {
-                        sum = Blend(sum, Plots[p].GetNext(current.PlotStates[p]), 50);
-                    }
+                    sum = sum == -1 ? get(p) : blend(sum, get(p), 50);
                 }
             }
             return sum;
         }
-        // !current.Plot1Visible && !current.Plot2Visible ? 0
-        // : !current.Plot1Visible ? Plot2.GetNext(current.Plot2State)
-        // : !current.Plot2Visible ? Plot1.GetNext(current.Plot1State)
-        // : Blend(Plot1.GetNext(current.Plot1State), Plot2.GetNext(current.Plot2State), 50);
 
-        private int Blend(int intensityA, int intensityB, int alpha) =>
-            intensityA + ((intensityB - intensityA) * alpha) / 0xFF;
     }
 }
 

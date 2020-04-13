@@ -3,39 +3,24 @@
 namespace CompositeVideoOscilloscope {
 
     public class LineState {
-        public LineState(int noOfPlots) {
-            PixelState = new PixelState(noOfPlots);
-        }
-
         public bool Finished;
-
         public int LineBlockCount;
         public int LineCnt;
         public int LineNumber;
-        public PixelState PixelState;
+        public PixelState PixelState = new PixelState();
     }
 
     public class PixelState {
-        public PixelState(int noOfPlots) {
-            ContentState = new ContentState(noOfPlots);
-        }
-
         public bool Finished;
-
         public long TimePs;
         public int LineSegmentCnt;
-        public ContentState ContentState;
+        public ContentState ContentState = new ContentState();
     }
 
     public class ContentState {
-        public ContentState(int noOfPlots) {
-            PlotStates = Array.ConvertAll(new PlotState[noOfPlots], v => new PlotState());
-            PlotsVisible = new bool[noOfPlots];
-        }
-
         public int LocationX, LocationY;
-        public bool[] PlotsVisible;
-        public PlotState[] PlotStates;
+        public bool[] PlotsVisible = new bool[Controller.MaxPlots];
+        public PlotState[] PlotStates = Array.ConvertAll(new PlotState[Controller.MaxPlots], v => new PlotState());
     }
 
     public class PlotState {
