@@ -1,8 +1,9 @@
-﻿namespace CompositeVideoOscilloscope {
+﻿using System;
+
+namespace CompositeVideoOscilloscope {
 
     public class LineState {
         public bool Finished;
-
         public int LineBlockCount;
         public int LineCnt;
         public int LineNumber;
@@ -11,7 +12,6 @@
 
     public class PixelState {
         public bool Finished;
-
         public long TimePs;
         public int LineSegmentCnt;
         public ContentState ContentState = new ContentState();
@@ -19,12 +19,11 @@
 
     public class ContentState {
         public int LocationX, LocationY;
-        public bool Plot1Visible, Plot2Visible;
-        public PlotState Plot1State = new PlotState();
-        public PlotState Plot2State = new PlotState();
+        public PlotState[] PlotStates = Array.ConvertAll(new PlotState[Controller.MaxPlots], v => new PlotState());
     }
 
     public class PlotState {
+        public bool Visible;
         public AxisLayerState AxisState = new AxisLayerState();
         public SignalLayerState SignalState = new SignalLayerState();
     }

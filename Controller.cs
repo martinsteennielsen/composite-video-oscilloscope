@@ -4,60 +4,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 
 namespace CompositeVideoOscilloscope {
 
     public class Controller {
+        public static int MaxPlots = 8;
+
         public readonly Controls Controls;
         public readonly Queue<string> Commands = new Queue<string>();
 
         private readonly string ControlsFile;
         private readonly Stopwatch Stopwatch = new Stopwatch();
-        private readonly Movements Movements;
+        private readonly List<Move> Moves = new List<Move>();
 
         public Controller(string controlsFile = null) {
             ControlsFile = controlsFile;
             Controls = LoadControls() ?? ResetControls(new Controls());
-            Movements = new Movements(Controls);
-            Movements.Add(0, -0.04, 0, member: x => x.Plot2.Location.Left);
-            Movements.Add(0, -0.04, 0, member: x => Controls.Plot2.Location.Top);
-            Movements.Add(Math.PI / 2, 0.4, 0.01, member: x => Controls.Plot2.Location.Angle);
-            Movements.Add(-Math.PI / 2, -0.2, -0.01, member: x => Controls.Plot1.Location.Angle);
             Stopwatch.Start();
-        }
-
-        Controls LoadControls() {
-            try {
-                return JsonConvert.DeserializeObject<Controls>(File.ReadAllText(ControlsFile));
-            } catch {
-                return null;
-            }
-        }
-
-        private static Controls ResetControls(Controls controls) {
-            controls.VideoStandard = VideoStandard.Pal5MhzProgessiv;
-            controls.Plot1 = new PlotControls {
-                SampleBufferLength = 1000,
-                SubSamplePlot = false,
-                NumberOfDivisions = 10,
-                Units = (.005, 0.5),
-                Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
-                Location = new LocationControls { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle = 0 }
-            };
-            controls.Plot2 = new PlotControls {
-                SampleBufferLength = 1000,
-                SubSamplePlot = false,
-                NumberOfDivisions = 10,
-                Units = (.005, 0.5),
-                Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
-                Location = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle = 0 }
-            };
-            controls.RunMovements = true;
-            controls.EnableOutput = true;
-            controls.RunTime = true;
-            return controls;
         }
 
         public async Task<Controls> Run() {
@@ -68,8 +34,8 @@ namespace CompositeVideoOscilloscope {
             if (Controls.RunTime) {
                 Controls.CurrentTime = currentTime;
             }
-            if (Controls.RunMovements) {
-                Movements.Run(Controls, elapsedTime);
+            if (Controls.RunMoves) {
+                RunMoves(elapsedTime);
             }
             if (Commands.Any()) {
                 HandleCommand(Commands.Dequeue());
@@ -77,12 +43,19 @@ namespace CompositeVideoOscilloscope {
             return Controls;
         }
 
+        void RunMoves(double elapsedTime) {
+            foreach (var move in Moves.ToList()) {
+                if (move.Run(elapsedTime)) {
+                    Moves.Remove(move);
+                }
+            }
+        }
+
         void HandleCommand(string command) {
             if (command == "s") {
-                Controls.Plot1.SubSamplePlot = !Controls.Plot1.SubSamplePlot;
-                Controls.Plot2.SubSamplePlot = !Controls.Plot2.SubSamplePlot;
+                Controls.Plots.ForEach(ctrl => ctrl.SubSamplePlot = !ctrl.SubSamplePlot);
             } else if (command == "f") {
-                Controls.RunMovements = !Controls.RunMovements;
+                Controls.RunMoves = !Controls.RunMoves;
             } else if (command == "o") {
                 Controls.EnableOutput = !Controls.EnableOutput;
             } else if (command == "v") {
@@ -96,19 +69,77 @@ namespace CompositeVideoOscilloscope {
             } else if (command == "save") {
                 File.WriteAllText(ControlsFile, JsonConvert.SerializeObject(Controls, Formatting.Indented));
             } else if (command == "morebuf") {
-                Controls.Plot1.SampleBufferLength *= 2;
-                Controls.Plot2.SampleBufferLength *= 2;
+                Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength *= 2);
             } else if (command == "lessbuf") {
-                Controls.Plot1.SampleBufferLength /= 2;
-                Controls.Plot2.SampleBufferLength /= 2;
+                Controls.Plots.ForEach(ctrl => ctrl.SampleBufferLength /= 2);
             } else if (command == "reset") {
+                RunMoves(elapsedTime: -1);
                 ResetControls(Controls);
             } else if (command == "time") {
                 Controls.RunTime = !Controls.RunTime;
             } else if (command == "interpolate") {
-                Controls.Plot1.Curve = Controls.Plot1.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
-                Controls.Plot2.Curve = Controls.Plot2.Curve == Curve.Line ? Curve.Stairs : Curve.Line;
+                Controls.Plots.ForEach(ctrl => ctrl.Curve = ctrl.Curve == Curve.Line ? Curve.Stairs : Curve.Line);
             }
         }
+
+        Controls LoadControls() {
+            try {
+                return JsonConvert.DeserializeObject<Controls>(File.ReadAllText(ControlsFile));
+            } catch {
+                return null;
+            }
+        }
+
+        private Controls ResetControls(Controls controls) {
+            controls.VideoStandard = VideoStandard.Pal5MhzProgessiv;
+            controls.RunMoves = true;
+            controls.EnableOutput = true;
+            controls.RunTime = true;
+            Stopwatch.Restart();
+            controls.CurrentTime = 0;
+            controls.Plots = DefaultPlots();
+
+            void MoveIt(Expression<Func<Controls, double>> member, double target, double velocity, double acceleration = 0) =>
+                Moves.Add(Move.Create(controls, member, target, velocity, acceleration));
+
+            Moves.Clear();
+            MoveIt(x => x.Plots[1].Location.Left, 0, -0.04);
+            MoveIt(x => x.Plots[1].Location.Top, 0, -0.04);
+            MoveIt(x => x.Plots[1].Location.Angle, Math.PI / 2, 0.4, 0.01);
+            MoveIt(x => x.Plots[0].Location.Angle, -Math.PI / 2, -0.2, -0.01);
+
+            return controls;
+        }
+
+        private static List<PlotControls> DefaultPlots() =>
+            new List<PlotControls> {
+                new PlotControls {
+                    Channel = 0,
+                    SampleBufferLength = 1000,
+                    SubSamplePlot = false,
+                    NumberOfDivisions = 10,
+                    Units = (.005, 0.5),
+                    Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
+                    Location = new LocationControls { Left = 0.1, Top = 0.1, Right = 0.5, Bottom = 0.5, Angle = 0 }
+                },
+                new PlotControls {
+                    Channel = 1,
+                    SampleBufferLength = 1000,
+                    SubSamplePlot = false,
+                    NumberOfDivisions = 10,
+                    Units = (.005, 0.5),
+                    Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
+                    Location = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle = 0 }
+                },
+                new PlotControls {
+                    Channel = 1,
+                    SampleBufferLength = 50,
+                    SubSamplePlot = false,
+                    NumberOfDivisions = 10,
+                    Units = (.0015, 0.4),
+                    Trigger = new TriggerControls { Voltage = 0.6, Edge = 0 },
+                    Location = new LocationControls { Left = 0.6, Top = 0.6, Right = 1.0, Bottom = 1.0, Angle = 0 }
+                }
+            };
     }
 }

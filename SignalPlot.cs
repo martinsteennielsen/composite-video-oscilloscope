@@ -26,6 +26,7 @@ namespace CompositeVideoOscilloscope {
             Viewport.Visible(x, y);
 
         public void ResetState(PlotState current, int x, int y) {
+            current.Visible = false;
             LayerAxis.ResetState(current.AxisState, x, y);
             LayerSignal.ResetState(current.SignalState, x, y);
         }

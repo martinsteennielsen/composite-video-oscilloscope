@@ -7,10 +7,10 @@ namespace CompositeVideoOscilloscope {
 
     public class VideoFrame {
         private readonly VideoConstants VideoConstants;
-        private readonly FrameContent Content;
+        private readonly Content Content;
         private readonly long SampleTimePs;
 
-        public VideoFrame(VideoConstants constants, FrameContent content) {
+        public VideoFrame(VideoConstants constants, Content content) {
             VideoConstants = constants;
             Content = content;
             SampleTimePs = (long)((long)1e12 * VideoConstants.Timing.DotTime);
@@ -57,19 +57,18 @@ namespace CompositeVideoOscilloscope {
         byte GetNextPixel(PixelState current, LineSegment[] lineSegments) {
             var lineSegment = lineSegments[current.LineSegmentCnt];
 
+            var pixelValue = lineSegment.Value == 255
+                ? ToVideoLevel(contentValue: Content.GetNext(current.ContentState))
+                : lineSegment.Value;
+
             current.TimePs += SampleTimePs;
-            if (lineSegment.Value == 255) {
-                Content.Next(current.ContentState);
-            }
             if (current.TimePs >= lineSegment.Duration) {
                 current.TimePs -= lineSegment.Duration;
                 current.LineSegmentCnt++;
                 current.Finished = !(current.LineSegmentCnt < lineSegments.Length && current.TimePs < lineSegments[current.LineSegmentCnt].Duration);
             }
 
-            return lineSegment.Value == 255
-                ? ToVideoLevel(contentValue: Content.Get(current.ContentState))
-                : lineSegment.Value;
+            return pixelValue;
         }
 
         byte ToVideoLevel(int contentValue) {

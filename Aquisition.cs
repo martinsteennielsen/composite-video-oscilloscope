@@ -7,8 +7,8 @@ namespace CompositeVideoOscilloscope {
     public class Aquisition {
         const int uV = (int)1e6; 
 
-        public Sampling GetSampling(PlotControls controls, int channel, double currentTime) {
-            if (channel == 1) {
+        public Sampling GetSampling(PlotControls controls, double currentTime) {
+            if (controls.Channel == 1) {
                 var buffer = new int[controls.SampleBufferLength];
                 var sampleTime = .1 / buffer.Length;
                 var (startTime, endTime) = Run(currentTime, buffer, sampleTime, Generate1);
